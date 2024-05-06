@@ -9,7 +9,9 @@ public class Player : MonoBehaviour
     [Header("Movement")]
     [SerializeField]
     private float speed = 1.0f;
+    public float currentSpeed;
     public float groundDrag;
+
 
     [Header("Jump")]
     public float jumpForce;
@@ -130,17 +132,16 @@ public class Player : MonoBehaviour
             Jump();
             Invoke(nameof(ResetJump), jumpCooldown);
         }
-        else if (canDoubleJump)
+        else if (canDoubleJump && Input.GetKeyDown(jumpKey)) // si no funka meter otro if debajo
         {
-            if (Input.GetKeyDown(jumpKey))
-            {
+            
                 if (jumpCount >= jumps - 1)
                 {
                     canDoubleJump = false;
                     jumpCount = 0;
                 }
                 Jump();
-            }
+            
         }
     }
 
