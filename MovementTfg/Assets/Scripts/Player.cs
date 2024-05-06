@@ -12,7 +12,6 @@ public class Player : MonoBehaviour
     public float currentSpeed;
     public float groundDrag;
 
-
     [Header("Jump")]
     public float jumpForce;
     public float jumpCooldown;
@@ -138,7 +137,7 @@ public class Player : MonoBehaviour
                 if (jumpCount >= jumps - 1)
                 {
                     canDoubleJump = false;
-                    jumpCount = 0;
+                    //jumpCount = 0;
                 }
                 Jump();
             

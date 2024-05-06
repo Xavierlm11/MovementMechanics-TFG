@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class PlayerCam : MonoBehaviour
@@ -8,6 +7,10 @@ public class PlayerCam : MonoBehaviour
 
     [SerializeField]
     Vector2 sensitivity = Vector2.one;
+
+    [Range(0f, 10f)]
+    [SerializeField]
+    public float generalSensitivity = 1f;
 
     [SerializeField]
     Vector2 camRotation = Vector2.zero;
@@ -18,6 +21,7 @@ public class PlayerCam : MonoBehaviour
     [SerializeField]
     Transform player;
 
+    private float lastpos = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -29,9 +33,14 @@ public class PlayerCam : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
         // mouse input
-        float inputX = Input.GetAxis("Mouse X") * Time.deltaTime * sensitivity.x;
-        float inputY = Input.GetAxis("Mouse Y") * Time.deltaTime * sensitivity.y;
+        //if(Mathf.Abs( lastpos-camRotation.x)>=5f )
+        //{
+        //    Debug.Log("aaaaaaaa");
+        //}
+        float inputX = Input.GetAxis("Mouse X") * Time.deltaTime * sensitivity.x * generalSensitivity;
+        float inputY = Input.GetAxis("Mouse Y") * Time.deltaTime * sensitivity.y * generalSensitivity;
 
         //Horizntal Rotation
         camRotation.x += inputX;
@@ -43,7 +52,7 @@ public class PlayerCam : MonoBehaviour
         orientation.rotation = Quaternion.Euler(0, camRotation.x, 0);
        // player.rotation = orientation.rotation;
         //transform.localEulerAngles = Vector3.right * camRotation;
-
+        //lastpos = camRotation.x;
         // Player.
     }
 }
