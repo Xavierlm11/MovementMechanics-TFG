@@ -15,6 +15,7 @@ public class PlayerSliding : MonoBehaviour
     public float maxSlideTime;
     public float minSlideTime;
     public float slideForce;
+    public float slideTimer;
 
     public float slideYScale;
     private float startYscale;
@@ -47,18 +48,28 @@ public class PlayerSliding : MonoBehaviour
         }
 
     }
+    private void FixedUpdate()
+    {
+        if (isSliding)
+        {
+            SlideMovement();
+        }
+    }
 
     private void StartSlide()
     {
         isSliding = true;
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, slideYScale, playerObj.localScale.z);
-    
+
+        slideTimer = maxSlideTime;
     }
 
     private void SlideMovement()
     {
-
+        Vector3 inputDir = orientation.forward * inputs.y + orientation.right * inputs.x;
+        rb.AddForce(inputDir.normalized * slideForce, ForceMode.Force);
+        slideTimer += Time.deltaTime;
     }
 
     private void EndSlide()
