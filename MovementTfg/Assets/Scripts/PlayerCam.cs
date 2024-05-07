@@ -21,7 +21,7 @@ public class PlayerCam : MonoBehaviour
     [SerializeField]
     Transform player;
 
-    private float lastpos = 0;
+    //private float lastpos = 0;
 
     // Start is called before the first frame update
     void Start()

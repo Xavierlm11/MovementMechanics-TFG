@@ -67,8 +67,6 @@ public class Player : MonoBehaviour
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight * 0.5f) + 0.2f, whatIsGround);
         UpdateInputs();
 
-
-
         if (inGround )
         {
             rb.drag = groundDrag;
@@ -85,10 +83,7 @@ public class Player : MonoBehaviour
             rb.drag = 0;
         }
 
-        
-
         VelocityControl();
-
 
         //reset position
         if (transform.position.y < playerLimit)
@@ -102,7 +97,6 @@ public class Player : MonoBehaviour
         PlayerMovement();
         transform.rotation = orientation.rotation;
     }
-
 
     private void UpdateInputs()
     {
