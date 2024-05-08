@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,9 +9,10 @@ public class Player : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField]
-    private float speed = 1.0f;
     public float currentSpeed;
     public float groundDrag;
+    public float moveSpeed = 10f;
+    private float speed = 1.0f;
 
     [Header("Jump")]
     public float jumpForce;
@@ -19,10 +21,15 @@ public class Player : MonoBehaviour
     bool canJump = true;
     [SerializeField]
     bool canDoubleJump = false;
-    [Tooltip("Cuantity of jumps")]
+    [Tooltip("Quantity of jumps")]
     public int jumps = 1;
     public int jumpCount = 0;
     public bool jumped = false;
+
+    [Header("Crouch")]
+    public float crouchSpeed;
+    public float crouchYScale;
+    private float startYScale;
 
     [Header("Dash")]
     public float dashForce;
@@ -33,8 +40,8 @@ public class Player : MonoBehaviour
     [Header("Keys")]
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode LdashKey = KeyCode.LeftShift;
-    public KeyCode RdashKey = KeyCode.RightShift;
-
+    public KeyCode LcrouchKey = KeyCode.LeftControl;
+   
     [Header("Ground")]
     public float playerHeight = 1.0f;
     public LayerMask whatIsGround;
@@ -43,21 +50,40 @@ public class Player : MonoBehaviour
     [SerializeField]
     private Transform orientation;
 
-    Vector2 inputs;
+    private Vector2 inputs;
 
-    Vector3 moveDirection;
+    private Vector3 moveDirection;
 
-    Rigidbody rb;
+    private Rigidbody rb;
 
-    Vector3 finalForce;
+    private Vector3 finalForce;
+
+    public TMP_Text velTextObj; 
+    public TMP_Text stateTextObj; 
 
     public float playerLimit = -10.0f;
+
+    private MovementState movState;
+
+    private PlayerSliding playerSlideCs;
+
+    public enum MovementState
+    {
+        Walking,
+        Dashing,
+        Sliding,
+        Crouching,
+        Air
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        playerSlideCs = GetComponent<PlayerSliding>();
         rb.freezeRotation = true;
+        startYScale = transform.localScale.y;
+
     }
 
     // Update is called once per frame
@@ -66,6 +92,8 @@ public class Player : MonoBehaviour
 
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight * 0.5f) + 0.2f, whatIsGround);
         UpdateInputs();
+        VelocityControl();
+        StateManager();
 
         if (inGround )
         {
@@ -83,8 +111,8 @@ public class Player : MonoBehaviour
             rb.drag = 0;
         }
 
-        VelocityControl();
-
+        velTextObj.text="Vel: " + currentSpeed.ToString("0.00");
+        stateTextObj.text="State: " + movState.ToString();
         //reset position
         if (transform.position.y < playerLimit)
         {
@@ -107,13 +135,50 @@ public class Player : MonoBehaviour
 
         JumpingManage();
 
-        if ((Input.GetKeyDown(LdashKey)|| Input.GetKeyDown(RdashKey)) && canDash )
+        if(Input.GetKeyDown(LcrouchKey) && inGround)
         {
-            canDash = false;
-            Dash();
-            Invoke(nameof(ResetDash), dashCooldown);
+            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
+        if(Input.GetKeyUp(LcrouchKey) || !inGround)
+        {
+            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+        }
+        //if ((Input.GetKeyDown(LdashKey)|| Input.GetKeyDown(RdashKey)) && canDash )
+        //{
+        //    canDash = false;
+        //    Dash();
+        //    Invoke(nameof(ResetDash), dashCooldown);
+        //}
 
+    }
+
+    private void StateManager()
+    {
+         if (Input.GetKey(LcrouchKey)&& inGround )
+        {
+            movState = MovementState.Crouching;
+            speed = crouchSpeed;
+            Debug.Log("agachao");
+        }
+        else if (playerSlideCs.isSliding && inGround)
+        {
+            movState = MovementState.Sliding;
+        }
+        else if(inGround)
+        {
+            movState = MovementState.Walking;
+            speed = moveSpeed;
+
+        }
+        else if (!inGround)
+        {
+            movState = MovementState.Air;
+        }
+        else
+        {
+            movState = MovementState.Dashing;
+        }
     }
     private void JumpingManage()
     {
@@ -162,6 +227,7 @@ public class Player : MonoBehaviour
             Vector3 limitVel = vel.normalized * speed;
             rb.velocity = new Vector3(limitVel.x, rb.velocity.y, limitVel.z);
         }
+        currentSpeed = rb.velocity.magnitude;
     }
 
     private void Jump()

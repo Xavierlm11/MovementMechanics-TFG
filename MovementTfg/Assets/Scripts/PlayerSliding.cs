@@ -9,13 +9,13 @@ public class PlayerSliding : MonoBehaviour
     public Transform orientation;
     public Transform playerObj;
     private Rigidbody rb;
-    private Player playerMov; 
+    private Player playerMov;
 
     [Header("Slide")]
     public float maxSlideTime;
-    public float minSlideTime;
+    private float minSlideTime;
     public float slideForce;
-    public float slideTimer;
+    private float slideTimer;
 
     public float slideYScale;
     private float startYscale;
@@ -38,7 +38,7 @@ public class PlayerSliding : MonoBehaviour
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        if(Input.GetKeyDown(LSlideKey) &&( inputs.x !=0 ||inputs.y!=0) )
+        if (Input.GetKeyDown(LSlideKey) && (inputs.x != 0 || inputs.y != 0))
         {
             StartSlide();
         }
@@ -69,11 +69,18 @@ public class PlayerSliding : MonoBehaviour
     {
         Vector3 inputDir = orientation.forward * inputs.y + orientation.right * inputs.x;
         rb.AddForce(inputDir.normalized * slideForce, ForceMode.Force);
-        slideTimer += Time.deltaTime;
+        slideTimer -= Time.deltaTime;
+
+        if (slideTimer <= 0)
+        {
+            EndSlide();
+        }
     }
 
     private void EndSlide()
     {
+        isSliding = false;
 
+        playerObj.localScale = new Vector3(playerObj.localScale.x, startYscale, playerObj.localScale.z);
     }
 }
