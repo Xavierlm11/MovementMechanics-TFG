@@ -8,15 +8,20 @@ using UnityEngine.UIElements;
 public class Player : MonoBehaviour
 {
     [Header("Movement")]
-    
-    public float currentSpeed;
+    public float currentSpeed = 0;
     public float groundDrag;
     public float moveSpeed = 10f;
     private float speed = 1.0f;
     [SerializeField]
     private float slideSpeed = 1.0f;
+    [SerializeField]
+    private float addSlideSpeed = 1.0f;
     private float aimedMoveSpeed;
     private float maxAimedMoveSpeed;
+
+    private float speedMultiply;
+    private float slopeMultiply;
+
 
     [Header("Jump")]
     public float jumpForce;
@@ -76,6 +81,11 @@ public class Player : MonoBehaviour
 
     public bool isSliding;
 
+    [SerializeField]
+    private GameObject spawner;
+    private Transform spawnPoint;
+
+
     public TMP_Text stateTextObj;
     public TMP_Text velTextObj;
     public enum MovementState
@@ -94,6 +104,9 @@ public class Player : MonoBehaviour
         playerSlideCs = GetComponent<PlayerSliding>();
         rb.freezeRotation = true;
         startYScale = transform.localScale.y;
+        spawnPoint = spawner.transform.GetChild(0).transform;
+        transform.position = spawnPoint.position;
+
 
     }
 
@@ -101,14 +114,24 @@ public class Player : MonoBehaviour
     void Update()
     {
 
-        inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight * 0.5f) + 0.2f, whatIsGround);
-        UpdateInputs();
-        VelocityControl();
-        StateManager();
+        inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, whatIsGround);
 
+
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 1 : " + speed);
+        UpdateInputs();
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 2 : " + speed);
+        VelocityControl();
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 3 : " + speed);
+        StateManager();
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 4 : " + speed);
         if (inGround)
         {
             rb.drag = groundDrag;
+            
             if (jumped)
             {
                 jumped = false;
@@ -122,18 +145,24 @@ public class Player : MonoBehaviour
             rb.drag = 0;
         }
 
-        velTextObj.text = "Vel: " + currentSpeed.ToString("0.00");
-        stateTextObj.text = "State: " + movState.ToString();
+       // Debug.Log("speed " + currentSpeed.ToString());
+
         //reset position
         if (transform.position.y < playerLimit)
         {
-            transform.position = new Vector3(0, 5, 0);
+            transform.position = spawnPoint.position;
         }
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 5 : " + speed);
     }
 
     private void FixedUpdate()
     {
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 6 : " + speed);
         PlayerMovement();
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("saaaaa 7 : " + speed);
         transform.rotation = orientation.rotation;
     }
 
@@ -144,9 +173,9 @@ public class Player : MonoBehaviour
 
         //jump
 
-        JumpingManage();
+       // JumpingManage();
         //if ((inputs.x == 0 && inputs.y == 0) || movState == MovementState.Crouching)
-            CrouchManager();
+      //  CrouchManager();
         //if ((Input.GetKeyDown(LdashKey)|| Input.GetKeyDown(RdashKey)) && canDash )
         //{
         //    canDash = false;
@@ -158,12 +187,12 @@ public class Player : MonoBehaviour
 
     private void CrouchManager()
     {
-        if ((Input.GetKeyDown(LcrouchKey) ) && inGround)
+        if ((Input.GetKeyDown(LcrouchKey)) && inGround)
         {
             transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
-        if (Input.GetKeyUp(LcrouchKey) || !inGround)
+        if (Input.GetKeyUp(LcrouchKey) && movState == MovementState.Crouching || !inGround)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
         }
@@ -171,19 +200,26 @@ public class Player : MonoBehaviour
 
     private void StateManager()
     {
-        if (isSliding )
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("state 1 : " + speed);
+        if (isSliding)
         {
             movState = MovementState.Sliding;
-            if(IsOnSlope() && rb.velocity.y <0.1f)
+            if (IsOnSlope() && rb.velocity.y < 0.1f)
             {
                 aimedMoveSpeed = slideSpeed;
+               // Debug.Log("slippppp");
             }
             else
             {
-                aimedMoveSpeed = speed;
+                aimedMoveSpeed = moveSpeed + addSlideSpeed;
+                //Debug.Log("jajajajjajajajaj");
             }
+
+            if (IsOnSlope() && speed >= slideSpeed)
+                Debug.Log("state 2 : " + speed);
         }
-        else if (Input.GetKey(LcrouchKey) && inGround )
+        else if (Input.GetKey(LcrouchKey) && inGround)
         {
 
             movState = MovementState.Crouching;
@@ -196,39 +232,68 @@ public class Player : MonoBehaviour
             aimedMoveSpeed = moveSpeed;
 
         }
-        else if (!inGround)
+        else //if (!inGround)
         {
             movState = MovementState.Air;
         }
-        //else
-        //{
-        //    movState = MovementState.Dashing;
-        //}
-         if(Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed)> 4f && speed !=0) // 4 is the speed where it start the smooth change of velocity
+
+        if (Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed) > 4f && speed != 0) // 4 is the speed where it start the smooth change of velocity
         {
             StopAllCoroutines();
-            StartCoroutine(LerpSpeed() );
+            StartCoroutine(LerpSpeed());
         }
-         else
+        else
         {
             speed = aimedMoveSpeed;
         }
         maxAimedMoveSpeed = aimedMoveSpeed;
+
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("state 3 : "+speed);
+
+        stateTextObj.text = "State: " + movState.ToString();
+
+        if(slideSpeed != 20f)
+        {
+            Debug.Log("QUE COJONES");
+        }
     }
 
     private IEnumerator LerpSpeed()
     {
         float time = 0;
-        float diff = Mathf.Abs(maxAimedMoveSpeed - speed); //differenve
+        float diff = Mathf.Abs(aimedMoveSpeed - speed); //differenve
         float startVal = speed;
 
-        while(time < diff)
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("lerpe 1 : " + speed); 
+        Debug.Log("lerpe 1 : " + speed);
+
+        while (time < diff)
         {
             speed = Mathf.Lerp(startVal, aimedMoveSpeed, time / diff);
-            time+= Time.deltaTime;
+
+            if (IsOnSlope())
+            {
+                float slopeAng = Vector3.Angle(Vector3.up, slopeHit.normal);
+                float slopeAngIncrease = 1 + (slopeAng / 90f);
+                time += Time.deltaTime * speedMultiply * slopeMultiply * slopeAngIncrease;
+            }
+            else
+            {
+                time += Time.deltaTime * speedMultiply;
+            }
+
             yield return null;
         }
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("lerpe 2 : " + speed);
+
         speed = aimedMoveSpeed;
+
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("lerpe 3 : " + speed);
+        //Debug.Log(speed.ToString());
     }
     private void JumpingManage()
     {
@@ -258,27 +323,45 @@ public class Player : MonoBehaviour
         moveDirection = orientation.forward * inputs.y + orientation.right * inputs.x;
 
         finalForce = moveDirection.normalized * speed * 10f;
-
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("speed on slope 1 : " + speed);
 
         if (IsOnSlope() && !leavingSlope)
         {
             rb.AddForce(GetSlopeMoveDirection(moveDirection) * speed * 20f, ForceMode.Force);
+
+            if (rb.velocity.y > 0)
+            {
+                //to keep the plyer on hte slope and not do weid jumps
+                rb.AddForce(Vector3.down * 80f, ForceMode.Force);
+            }
+            if (IsOnSlope() && speed >= slideSpeed)
+                Debug.Log("speed on slope 2 : " + speed);
         }
         else if (inGround)
         {
             rb.AddForce(finalForce, ForceMode.Force);
         }
-        else// if (!inGround) 
+        else if (!inGround) 
         {
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
         }
 
         rb.useGravity = !IsOnSlope();
 
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("speed on slope 3 : " + speed);
+
+        //if(!rb.useGravity)
+        //{
+        //    Debug.Log("aaaaaaa");
+        //}
     }
     private void VelocityControl() // limits player's velocity
     {
         Vector3 vel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("control vel 1 : " + speed);
 
         if (IsOnSlope() && !leavingSlope)
         {
@@ -295,8 +378,16 @@ public class Player : MonoBehaviour
                 rb.velocity = new Vector3(limitVel.x, rb.velocity.y, limitVel.z);
             }
         }
-        //currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
-        currentSpeed = vel.magnitude;
+        currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
+        //currentSpeed = vel.magnitude;
+       
+        if(!IsOnSlope())
+            velTextObj.text = "Vel: " + Mathf.Round(currentSpeed).ToString("0.00");
+        else
+            velTextObj.text = "Vel: " + Mathf.Round(rb.velocity.magnitude).ToString("0.00");
+
+        if (IsOnSlope() && speed >= slideSpeed)
+            Debug.Log("control vel 2 : " + speed);
     }
 
     private void Jump()

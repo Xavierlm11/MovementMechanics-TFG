@@ -13,13 +13,14 @@ public class PlayerSliding : MonoBehaviour
 
     [Header("Slide")]
     public float maxSlideTime;
-    private float minSlideTime;
     public float slideForce;
     private float slideTimer;
 
     public float slideYScale;
     private float startYscale;
-    
+
+    private bool canSlide;
+    private bool slidedToEnd;
 
     [Header("Inputs")]
     public KeyCode LSlideKey = KeyCode.LeftControl;
@@ -28,8 +29,9 @@ public class PlayerSliding : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        playerMov = GetComponent<Player>();
+        playerMov = GetComponent<Player>(); 
         startYscale = playerObj.localScale.y;
+        canSlide = false;
     }
 
     // Update is called once per frame
@@ -38,12 +40,15 @@ public class PlayerSliding : MonoBehaviour
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        if (Input.GetKeyDown(LSlideKey) && (inputs.x != 0 || inputs.y != 0))
+        if (Input.GetKey(LSlideKey) && (inputs.x != 0 || inputs.y != 0) && playerMov.inGround && !canSlide)
         {
+
             StartSlide();
         }
-        if (Input.GetKeyUp(LSlideKey) && playerMov.isSliding)
+        if (Input.GetKeyUp(LSlideKey) && (playerMov.isSliding || slidedToEnd) || !playerMov.inGround)
         {
+            slidedToEnd = false;
+            canSlide = false;
             EndSlide();
         }
 
@@ -58,6 +63,8 @@ public class PlayerSliding : MonoBehaviour
 
     private void StartSlide()
     {
+        canSlide = true;
+
         playerMov.isSliding = true;
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, slideYScale, playerObj.localScale.z);
@@ -81,15 +88,17 @@ public class PlayerSliding : MonoBehaviour
 
         if (slideTimer <= 0)
         {
+            slidedToEnd = true;
             EndSlide();
         }
     }
 
     private void EndSlide()
     {
+
         playerMov.isSliding = false;
-        if (Input.GetKey(LSlideKey))
-            playerMov.movState = Player.MovementState.Crouching;
+        // if (Input.GetKey(LSlideKey))
+        //     playerMov.movState = Player.MovementState.Crouching;
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, startYscale, playerObj.localScale.z);
     }
