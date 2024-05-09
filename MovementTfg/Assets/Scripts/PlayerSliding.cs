@@ -19,7 +19,7 @@ public class PlayerSliding : MonoBehaviour
 
     public float slideYScale;
     private float startYscale;
-    public bool isSliding;
+    
 
     [Header("Inputs")]
     public KeyCode LSlideKey = KeyCode.LeftControl;
@@ -42,7 +42,7 @@ public class PlayerSliding : MonoBehaviour
         {
             StartSlide();
         }
-        if (Input.GetKeyUp(LSlideKey) && isSliding)
+        if (Input.GetKeyUp(LSlideKey) && playerMov.isSliding)
         {
             EndSlide();
         }
@@ -50,7 +50,7 @@ public class PlayerSliding : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (isSliding)
+        if (playerMov.isSliding)
         {
             SlideMovement();
         }
@@ -58,7 +58,7 @@ public class PlayerSliding : MonoBehaviour
 
     private void StartSlide()
     {
-        isSliding = true;
+        playerMov.isSliding = true;
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, slideYScale, playerObj.localScale.z);
 
@@ -68,8 +68,16 @@ public class PlayerSliding : MonoBehaviour
     private void SlideMovement()
     {
         Vector3 inputDir = orientation.forward * inputs.y + orientation.right * inputs.x;
-        rb.AddForce(inputDir.normalized * slideForce, ForceMode.Force);
-        slideTimer -= Time.deltaTime;
+
+        if (!playerMov.IsOnSlope() || rb.velocity.y > -0.1f)
+        {
+            rb.AddForce(inputDir.normalized * slideForce, ForceMode.Force);
+            slideTimer -= Time.deltaTime;
+        }
+        else
+        {
+            rb.AddForce(playerMov.GetSlopeMoveDirection(inputDir) * slideForce, ForceMode.Force);
+        }
 
         if (slideTimer <= 0)
         {
@@ -79,8 +87,8 @@ public class PlayerSliding : MonoBehaviour
 
     private void EndSlide()
     {
-        isSliding = false;
-        if(Input.GetKey(LSlideKey))
+        playerMov.isSliding = false;
+        if (Input.GetKey(LSlideKey))
             playerMov.movState = Player.MovementState.Crouching;
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, startYscale, playerObj.localScale.z);

@@ -8,11 +8,15 @@ using UnityEngine.UIElements;
 public class Player : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField]
+    
     public float currentSpeed;
     public float groundDrag;
     public float moveSpeed = 10f;
     private float speed = 1.0f;
+    [SerializeField]
+    private float slideSpeed = 1.0f;
+    private float aimedMoveSpeed;
+    private float maxAimedMoveSpeed;
 
     [Header("Jump")]
     public float jumpForce;
@@ -20,7 +24,7 @@ public class Player : MonoBehaviour
     public float airMultiplier;
     bool canJump = true;
     [SerializeField]
-    bool canDoubleJump = false;
+    private bool canDoubleJump = false;
     [Tooltip("Quantity of jumps")]
     public int jumps = 1;
     public int jumpCount = 0;
@@ -63,8 +67,6 @@ public class Player : MonoBehaviour
 
     private Vector3 finalForce;
 
-    public TMP_Text velTextObj;
-    public TMP_Text stateTextObj;
 
     public float playerLimit = -10.0f;
 
@@ -72,6 +74,10 @@ public class Player : MonoBehaviour
 
     private PlayerSliding playerSlideCs;
 
+    public bool isSliding;
+
+    public TMP_Text stateTextObj;
+    public TMP_Text velTextObj;
     public enum MovementState
     {
         Walking,
@@ -139,7 +145,7 @@ public class Player : MonoBehaviour
         //jump
 
         JumpingManage();
-        if ((inputs.x == 0 && inputs.y == 0) || movState == MovementState.Crouching)
+        //if ((inputs.x == 0 && inputs.y == 0) || movState == MovementState.Crouching)
             CrouchManager();
         //if ((Input.GetKeyDown(LdashKey)|| Input.GetKeyDown(RdashKey)) && canDash )
         //{
@@ -152,7 +158,7 @@ public class Player : MonoBehaviour
 
     private void CrouchManager()
     {
-        if ((Input.GetKeyDown(LcrouchKey) || movState == MovementState.Crouching) && inGround)
+        if ((Input.GetKeyDown(LcrouchKey) ) && inGround)
         {
             transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
@@ -165,31 +171,64 @@ public class Player : MonoBehaviour
 
     private void StateManager()
     {
-        if (playerSlideCs.isSliding && inGround)
+        if (isSliding )
         {
             movState = MovementState.Sliding;
+            if(IsOnSlope() && rb.velocity.y <0.1f)
+            {
+                aimedMoveSpeed = slideSpeed;
+            }
+            else
+            {
+                aimedMoveSpeed = speed;
+            }
         }
-        else if (Input.GetKey(LcrouchKey) && inGround && !playerSlideCs.isSliding && (inputs.x == 0 && inputs.y == 0))
+        else if (Input.GetKey(LcrouchKey) && inGround )
         {
 
             movState = MovementState.Crouching;
-            speed = crouchSpeed;
+            aimedMoveSpeed = crouchSpeed;
             //Debug.Log("agachao");
         }
         else if (inGround)
         {
             movState = MovementState.Walking;
-            speed = moveSpeed;
+            aimedMoveSpeed = moveSpeed;
 
         }
         else if (!inGround)
         {
             movState = MovementState.Air;
         }
-        else
+        //else
+        //{
+        //    movState = MovementState.Dashing;
+        //}
+         if(Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed)> 4f && speed !=0) // 4 is the speed where it start the smooth change of velocity
         {
-            movState = MovementState.Dashing;
+            StopAllCoroutines();
+            StartCoroutine(LerpSpeed() );
         }
+         else
+        {
+            speed = aimedMoveSpeed;
+        }
+        maxAimedMoveSpeed = aimedMoveSpeed;
+    }
+
+    private IEnumerator LerpSpeed()
+    {
+        float time = 0;
+        float diff = Mathf.Abs(maxAimedMoveSpeed - speed); //differenve
+        float startVal = speed;
+
+        while(time < diff)
+        {
+            speed = Mathf.Lerp(startVal, aimedMoveSpeed, time / diff);
+            time+= Time.deltaTime;
+            yield return null;
+        }
+        speed = aimedMoveSpeed;
     }
     private void JumpingManage()
     {
@@ -223,15 +262,13 @@ public class Player : MonoBehaviour
 
         if (IsOnSlope() && !leavingSlope)
         {
-            rb.AddForce(GetSlopeMoveDirection(moveDirection) * moveSpeed * 20f, ForceMode.Force);
+            rb.AddForce(GetSlopeMoveDirection(moveDirection) * speed * 20f, ForceMode.Force);
         }
-
-
         else if (inGround)
         {
             rb.AddForce(finalForce, ForceMode.Force);
         }
-        else if (!inGround)
+        else// if (!inGround) 
         {
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
         }
@@ -245,20 +282,21 @@ public class Player : MonoBehaviour
 
         if (IsOnSlope() && !leavingSlope)
         {
-            if (rb.velocity.magnitude > moveSpeed)
+            if (rb.velocity.magnitude > speed)
             {
-                rb.velocity = rb.velocity.normalized * moveSpeed;
+                rb.velocity = rb.velocity.normalized * speed;
             }
         }
-            else
+        else
         {
             if (vel.magnitude > speed)
             {
                 Vector3 limitVel = vel.normalized * speed;
                 rb.velocity = new Vector3(limitVel.x, rb.velocity.y, limitVel.z);
             }
-            currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude; 
         }
+        //currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
+        currentSpeed = vel.magnitude;
     }
 
     private void Jump()
