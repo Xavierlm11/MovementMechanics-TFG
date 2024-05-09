@@ -80,6 +80,8 @@ public class PlayerSliding : MonoBehaviour
     private void EndSlide()
     {
         isSliding = false;
+        if(Input.GetKey(LSlideKey))
+            playerMov.movState = Player.MovementState.Crouching;
 
         playerObj.localScale = new Vector3(playerObj.localScale.x, startYscale, playerObj.localScale.z);
     }

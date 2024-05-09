@@ -41,11 +41,16 @@ public class Player : MonoBehaviour
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode LdashKey = KeyCode.LeftShift;
     public KeyCode LcrouchKey = KeyCode.LeftControl;
-   
+
     [Header("Ground")]
     public float playerHeight = 1.0f;
     public LayerMask whatIsGround;
     public bool inGround;
+
+    [Header("Slope Managment")]
+    public float maxSlopeAngle;
+    private RaycastHit slopeHit;
+    private bool leavingSlope;
 
     [SerializeField]
     private Transform orientation;
@@ -58,12 +63,12 @@ public class Player : MonoBehaviour
 
     private Vector3 finalForce;
 
-    public TMP_Text velTextObj; 
-    public TMP_Text stateTextObj; 
+    public TMP_Text velTextObj;
+    public TMP_Text stateTextObj;
 
     public float playerLimit = -10.0f;
 
-    private MovementState movState;
+    public MovementState movState;
 
     private PlayerSliding playerSlideCs;
 
@@ -95,14 +100,14 @@ public class Player : MonoBehaviour
         VelocityControl();
         StateManager();
 
-        if (inGround )
+        if (inGround)
         {
             rb.drag = groundDrag;
             if (jumped)
             {
                 jumped = false;
                 canDoubleJump = false;
-                jumpCount = 0; 
+                jumpCount = 0;
             }
         }
         else
@@ -111,8 +116,8 @@ public class Player : MonoBehaviour
             rb.drag = 0;
         }
 
-        velTextObj.text="Vel: " + currentSpeed.ToString("0.00");
-        stateTextObj.text="State: " + movState.ToString();
+        velTextObj.text = "Vel: " + currentSpeed.ToString("0.00");
+        stateTextObj.text = "State: " + movState.ToString();
         //reset position
         if (transform.position.y < playerLimit)
         {
@@ -134,16 +139,8 @@ public class Player : MonoBehaviour
         //jump
 
         JumpingManage();
-
-        if(Input.GetKeyDown(LcrouchKey) && inGround)
-        {
-            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
-            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-        }
-        if(Input.GetKeyUp(LcrouchKey) || !inGround)
-        {
-            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
-        }
+        if ((inputs.x == 0 && inputs.y == 0) || movState == MovementState.Crouching)
+            CrouchManager();
         //if ((Input.GetKeyDown(LdashKey)|| Input.GetKeyDown(RdashKey)) && canDash )
         //{
         //    canDash = false;
@@ -153,19 +150,33 @@ public class Player : MonoBehaviour
 
     }
 
+    private void CrouchManager()
+    {
+        if ((Input.GetKeyDown(LcrouchKey) || movState == MovementState.Crouching) && inGround)
+        {
+            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+        }
+        if (Input.GetKeyUp(LcrouchKey) || !inGround)
+        {
+            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+        }
+    }
+
     private void StateManager()
     {
-         if (Input.GetKey(LcrouchKey)&& inGround )
-        {
-            movState = MovementState.Crouching;
-            speed = crouchSpeed;
-            Debug.Log("agachao");
-        }
-        else if (playerSlideCs.isSliding && inGround)
+        if (playerSlideCs.isSliding && inGround)
         {
             movState = MovementState.Sliding;
         }
-        else if(inGround)
+        else if (Input.GetKey(LcrouchKey) && inGround && !playerSlideCs.isSliding && (inputs.x == 0 && inputs.y == 0))
+        {
+
+            movState = MovementState.Crouching;
+            speed = crouchSpeed;
+            //Debug.Log("agachao");
+        }
+        else if (inGround)
         {
             movState = MovementState.Walking;
             speed = moveSpeed;
@@ -192,14 +203,14 @@ public class Player : MonoBehaviour
         }
         else if (canDoubleJump && Input.GetKeyDown(jumpKey)) // si no funka meter otro if debajo
         {
-            
-                if (jumpCount >= jumps - 1)
-                {
-                    canDoubleJump = false;
-                    //jumpCount = 0;
-                }
-                Jump();
-            
+
+            if (jumpCount >= jumps - 1)
+            {
+                canDoubleJump = false;
+                //jumpCount = 0;
+            }
+            Jump();
+
         }
     }
 
@@ -209,7 +220,14 @@ public class Player : MonoBehaviour
 
         finalForce = moveDirection.normalized * speed * 10f;
 
-        if (inGround)
+
+        if (IsOnSlope() && !leavingSlope)
+        {
+            rb.AddForce(GetSlopeMoveDirection(moveDirection) * moveSpeed * 20f, ForceMode.Force);
+        }
+
+
+        else if (inGround)
         {
             rb.AddForce(finalForce, ForceMode.Force);
         }
@@ -217,21 +235,36 @@ public class Player : MonoBehaviour
         {
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
         }
+
+        rb.useGravity = !IsOnSlope();
+
     }
     private void VelocityControl() // limits player's velocity
     {
         Vector3 vel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
-        if (vel.magnitude > speed)
+        if (IsOnSlope() && !leavingSlope)
         {
-            Vector3 limitVel = vel.normalized * speed;
-            rb.velocity = new Vector3(limitVel.x, rb.velocity.y, limitVel.z);
+            if (rb.velocity.magnitude > moveSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * moveSpeed;
+            }
         }
-        currentSpeed = rb.velocity.magnitude;
+            else
+        {
+            if (vel.magnitude > speed)
+            {
+                Vector3 limitVel = vel.normalized * speed;
+                rb.velocity = new Vector3(limitVel.x, rb.velocity.y, limitVel.z);
+            }
+            currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude; 
+        }
     }
 
     private void Jump()
     {
+        leavingSlope = true;
+
         jumpCount++;
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
@@ -241,11 +274,29 @@ public class Player : MonoBehaviour
     private void ResetJump()
     {
         canJump = true;
+
+        leavingSlope = false;
     }
+
+    public bool IsOnSlope()
+    {
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.2f))
+        {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return angle < maxSlopeAngle && angle != 0;
+        }
+        return false;
+    }
+
+    public Vector3 GetSlopeMoveDirection(Vector3 direction)
+    {
+        return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
+    }
+
 
     private void Dash()
     {
-        
+
         rb.velocity = new Vector3(0f, rb.velocity.y, rb.velocity.z);
 
         rb.AddForce(transform.forward * dashForce, ForceMode.Impulse);
