@@ -117,17 +117,13 @@ public class Player : MonoBehaviour
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, whatIsGround);
 
 
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 1 : " + speed);
+       
         UpdateInputs();
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 2 : " + speed);
+        
         VelocityControl();
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 3 : " + speed);
+        
         StateManager();
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 4 : " + speed);
+        
         if (inGround)
         {
             rb.drag = groundDrag;
@@ -152,17 +148,14 @@ public class Player : MonoBehaviour
         {
             transform.position = spawnPoint.position;
         }
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 5 : " + speed);
+       
     }
 
     private void FixedUpdate()
     {
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 6 : " + speed);
+        
         PlayerMovement();
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("saaaaa 7 : " + speed);
+        
         transform.rotation = orientation.rotation;
     }
 
@@ -195,8 +188,7 @@ public class Player : MonoBehaviour
 
     private void StateManager()
     {
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("state 1 : " + speed);
+        
         if (isSliding)
         {
             movState = MovementState.Sliding;
@@ -208,7 +200,7 @@ public class Player : MonoBehaviour
             else
             {
                 aimedMoveSpeed = moveSpeed + addSlideSpeed;
-                //Debug.Log("jajajajjajajajaj");
+                
             }
 
             if (IsOnSlope() && speed >= slideSpeed)
@@ -219,7 +211,7 @@ public class Player : MonoBehaviour
 
             movState = MovementState.Crouching;
             aimedMoveSpeed = crouchSpeed;
-            //Debug.Log("agachao");
+           
         }
         else if (inGround)
         {
@@ -243,15 +235,11 @@ public class Player : MonoBehaviour
         }
         maxAimedMoveSpeed = aimedMoveSpeed;
 
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("state 3 : "+speed);
+        
 
         stateTextObj.text = "State: " + movState.ToString();
 
-        if(slideSpeed != 20f)
-        {
-            Debug.Log("QUE COJONES");
-        }
+   
     }
 
     private IEnumerator LerpSpeed()
@@ -262,7 +250,8 @@ public class Player : MonoBehaviour
 
         if (IsOnSlope() && speed >= slideSpeed)
             Debug.Log("lerpe 1 : " + speed); 
-        Debug.Log("lerpe 1 : " + speed);
+
+       
 
         while (time < diff)
         {
@@ -281,14 +270,12 @@ public class Player : MonoBehaviour
 
             yield return null;
         }
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("lerpe 2 : " + speed);
+        
 
         speed = aimedMoveSpeed;
 
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("lerpe 3 : " + speed);
-        //Debug.Log(speed.ToString());
+        
+
     }
     private void JumpingManage()
     {
@@ -318,8 +305,7 @@ public class Player : MonoBehaviour
         moveDirection = orientation.forward * inputs.y + orientation.right * inputs.x;
 
         finalForce = moveDirection.normalized * speed * 10f;
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("speed on slope 1 : " + speed);
+       
 
         if (IsOnSlope() && !leavingSlope)
         {
@@ -330,8 +316,7 @@ public class Player : MonoBehaviour
                 //to keep the plyer on hte slope and not do weid jumps
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
             }
-            if (IsOnSlope() && speed >= slideSpeed)
-                Debug.Log("speed on slope 2 : " + speed);
+            
         }
         else if (inGround)
         {
@@ -347,16 +332,12 @@ public class Player : MonoBehaviour
         if (IsOnSlope() && speed >= slideSpeed)
             Debug.Log("speed on slope 3 : " + speed);
 
-        //if(!rb.useGravity)
-        //{
-        //    Debug.Log("aaaaaaa");
-        //}
+        
     }
     private void VelocityControl() // limits player's velocity
     {
         Vector3 vel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("control vel 1 : " + speed);
+        
 
         if (IsOnSlope() && !leavingSlope)
         {
@@ -381,8 +362,7 @@ public class Player : MonoBehaviour
         else
             velTextObj.text = "Vel: " + Mathf.Round(rb.velocity.magnitude).ToString("0.00");
 
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("control vel 2 : " + speed);
+        
     }
 
     private void Jump()

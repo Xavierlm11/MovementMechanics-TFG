@@ -21,7 +21,6 @@ public class PlayerCam : MonoBehaviour
     [SerializeField]
     Transform player;
 
-    //private float lastpos = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -35,10 +34,7 @@ public class PlayerCam : MonoBehaviour
     {
         
         // mouse input
-        //if(Mathf.Abs( lastpos-camRotation.x)>=5f )
-        //{
-        //    Debug.Log("aaaaaaaa");
-        //}
+        
         float inputX = Input.GetAxis("Mouse X") * Time.deltaTime * sensitivity.x * generalSensitivity;
         float inputY = Input.GetAxis("Mouse Y") * Time.deltaTime * sensitivity.y * generalSensitivity;
 
@@ -50,9 +46,6 @@ public class PlayerCam : MonoBehaviour
 
         transform.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
         orientation.rotation = Quaternion.Euler(0, camRotation.x, 0);
-       // player.rotation = orientation.rotation;
-        //transform.localEulerAngles = Vector3.right * camRotation;
-        //lastpos = camRotation.x;
-        // Player.
+       
     }
 }

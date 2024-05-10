@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4449476498124725617}
   - component: {fileID: 8203330174591306923}
   - component: {fileID: 6477945521774748048}
+  - component: {fileID: 5971641310764782985}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -34,7 +35,7 @@ Transform:
   - {fileID: 5047716722416614233}
   - {fileID: 1127664202346503175}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &8203330174591306923
 Rigidbody:
@@ -75,27 +76,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55dd12062f6462d4089fa3ba0ac5e973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
-  groundDrag: 5
-  jumpForce: 6
+  currentSpeed: 0
+  groundDrag: 6
+  moveSpeed: 10
+  slideSpeed: 20
+  addSlideSpeed: 2
+  speedMultiply: 1.5
+  slopeMultiply: 2.5
+  jumpForce: 14
   jumpCooldown: 0.25
-  airMultiplier: 0.4
+  airMultiplier: 0.3
   canDoubleJump: 0
   jumps: 4
   jumpCount: 0
   jumped: 0
+  crouchSpeed: 5
+  crouchYScale: 0.5
   dashForce: 6
   dashCooldown: 0.25
   jumpKey: 32
   LdashKey: 304
-  RdashKey: 303
+  LcrouchKey: 99
   playerHeight: 2
   whatIsGround:
     serializedVersion: 2
     m_Bits: 128
   inGround: 0
+  maxSlopeAngle: 45
   orientation: {fileID: 1127664202346503175}
   playerLimit: -10
+  movState: 0
+  isSliding: 0
+  spawner: {fileID: 0}
+  stateTextObj: {fileID: 0}
+  velTextObj: {fileID: 0}
+--- !u!114 &5971641310764782985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 183657607308826826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce7635d737a58b348a769429533e6c24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  orientation: {fileID: 1127664202346503175}
+  playerObj: {fileID: 4449476498124725617}
+  maxSlideTime: 0.75
+  slideForce: 200
+  slideYScale: 0.5
+  LSlideKey: 306
 --- !u!1 &7052915665466897962
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,6 +140,7 @@ GameObject:
   - component: {fileID: 1544157360988813684}
   - component: {fileID: 3971769092326607276}
   - component: {fileID: 6422361633330362008}
+  - component: {fileID: 646015444740362046}
   m_Layer: 0
   m_Name: PlayerObj
   m_TagString: Player
@@ -188,7 +221,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7052915665466897962}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 75f9ebed72261d84dbe82dc692c7f896, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -201,6 +234,29 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
+  m_Height: 1.9
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!136 &646015444740362046
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7052915665466897962}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.4
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -217,7 +273,7 @@ GameObject:
   - component: {fileID: 4290271540536857756}
   - component: {fileID: 784172893162847465}
   m_Layer: 0
-  m_Name: we
+  m_Name: Visor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
