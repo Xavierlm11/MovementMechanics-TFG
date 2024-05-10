@@ -19,8 +19,8 @@ public class Player : MonoBehaviour
     private float aimedMoveSpeed;
     private float maxAimedMoveSpeed;
 
-    private float speedMultiply;
-    private float slopeMultiply;
+    public float speedMultiply;
+    public float slopeMultiply;
 
 
     [Header("Jump")]
@@ -173,15 +173,10 @@ public class Player : MonoBehaviour
 
         //jump
 
-       // JumpingManage();
-        //if ((inputs.x == 0 && inputs.y == 0) || movState == MovementState.Crouching)
-      //  CrouchManager();
-        //if ((Input.GetKeyDown(LdashKey)|| Input.GetKeyDown(RdashKey)) && canDash )
-        //{
-        //    canDash = false;
-        //    Dash();
-        //    Invoke(nameof(ResetDash), dashCooldown);
-        //}
+        JumpingManage();
+        
+        CrouchManager();
+        
 
     }
 
