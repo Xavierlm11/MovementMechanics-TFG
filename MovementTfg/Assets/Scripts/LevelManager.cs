@@ -29,5 +29,8 @@ public class LevelManager : MonoBehaviour
         maxCoins = coinsList.Count;
         foundCoins = 0;
     }
-
+    public void CollectCoin()
+    {
+        foundCoins++;
+    }
 }

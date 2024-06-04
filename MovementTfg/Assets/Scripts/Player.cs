@@ -18,6 +18,8 @@ public class Player : MonoBehaviour
     private float addSlideSpeed = 1.0f;
     private float aimedMoveSpeed;
     private float maxAimedMoveSpeed;
+    [SerializeField]
+    private float wallrunSpeed = 1.0f;
 
     public float speedMultiply;
     public float slopeMultiply;
@@ -53,7 +55,7 @@ public class Player : MonoBehaviour
 
     [Header("Ground")]
     public float playerHeight = 1.0f;
-    public LayerMask whatIsGround;
+    public LayerMask groundMask;
     public bool inGround;
 
     [Header("Slope Managment")]
@@ -80,6 +82,7 @@ public class Player : MonoBehaviour
     private PlayerSliding playerSlideCs;
 
     public bool isSliding;
+    public bool isWallrunning;
 
     [SerializeField]
     private GameObject spawner;
@@ -92,6 +95,7 @@ public class Player : MonoBehaviour
     {
         Walking,
         Dashing,
+        Wallrunning,
         Sliding,
         Crouching,
         Air
@@ -114,7 +118,7 @@ public class Player : MonoBehaviour
     void Update()
     {
 
-        inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, whatIsGround);
+        inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, groundMask);
 
 
        
@@ -178,7 +182,6 @@ public class Player : MonoBehaviour
         
         CrouchManager();
         
-
     }
 
     private void CrouchManager()
@@ -196,8 +199,12 @@ public class Player : MonoBehaviour
 
     private void StateManager()
     {
-        
-        if (isSliding)
+        if (isWallrunning)
+        {
+            movState = MovementState.Wallrunning;
+            aimedMoveSpeed = wallrunSpeed;
+        }
+         if (isSliding)
         {
             movState = MovementState.Sliding;
             if (IsOnSlope() && rb.velocity.y < 0.1f)
