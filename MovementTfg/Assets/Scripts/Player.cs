@@ -159,6 +159,14 @@ public class Player : MonoBehaviour
         transform.rotation = orientation.rotation;
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Coin"))
+        {
+
+        }
+    }
+
     private void UpdateInputs()
     {
         inputs.x = Input.GetAxisRaw("Horizontal");
