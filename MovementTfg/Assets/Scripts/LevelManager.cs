@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class LevelManager : MonoBehaviour
@@ -9,6 +10,7 @@ public class LevelManager : MonoBehaviour
     public List<GameObject> coinsList = new List<GameObject>();
     [SerializeField] private int maxCoins;
     [SerializeField] private int foundCoins = 0;
+    [SerializeField] private TMP_Text  coinsText;
 
     // Start is called before the first frame update
     void Start()
@@ -20,6 +22,7 @@ public class LevelManager : MonoBehaviour
     void Update()
     {
 
+        coinsText.text= "coins: "+ foundCoins.ToString() + "/"+maxCoins.ToString();
     }
 
     private void GetCoinsOnScene()

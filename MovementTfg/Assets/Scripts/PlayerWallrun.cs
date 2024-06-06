@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -9,11 +10,18 @@ public class PlayerWallrun : MonoBehaviour
     public LayerMask wallMask;
     public LayerMask groundMask;
     public float wallrunForce;
+    public float wallrunJumpUpForce;
+    public float wallrunJumpSideForce;
     public float wallrunTime;
     private float wallrunTimer;
 
+    private bool exitWall;
+    [SerializeField]private float exitTime;
+    private float exitTimer;
+
     [Header("Inputs")]
     private Vector2 inputs;
+    public KeyCode jumpKey = KeyCode.Space;
 
     [Header("Detectors")]
     public float checkDistance;
@@ -22,6 +30,10 @@ public class PlayerWallrun : MonoBehaviour
     private RaycastHit rWallHit;//right
     private bool isWallL;
     private bool isWallR;
+
+    [Header("Gravity")]
+    public bool usingGravity;
+    public float gravityCounter;
 
     [Header("Info")]
     public Transform orientation;
@@ -51,21 +63,36 @@ public class PlayerWallrun : MonoBehaviour
         }
     }
 
-    private bool GetIsInGround()
-    {
-        return !Physics.Raycast(transform.position, Vector3.down, jumpHeight, groundMask);
-    }
-
     private void StateManager()
     {
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        if((isWallL) || (isWallR)&& inputs.y > 0 && GetIsInGround())
+        if((isWallL) || (isWallR)&& inputs.y > 0 && !GetIsInGround() && !exitWall)
         {
             if(!playerMov.isWallrunning)
             {
                 StartWallrun();
+            }
+            if(Input.GetKeyDown(jumpKey))
+            {
+                WallJump();
+            }
+        }
+        else if (exitWall)
+        {
+            if(playerMov.isWallrunning)
+            {
+                StopWallrun();
+            }
+            if(exitTimer>0)
+            {
+                exitTimer -= Time.deltaTime;
+
+            }
+            if(exitTimer>=0)
+            {
+                exitWall = false;
             }
         }
         else
@@ -76,15 +103,21 @@ public class PlayerWallrun : MonoBehaviour
             }
         }
     }
-
+    private bool GetIsInGround()
+    {
+        return Physics.Raycast(transform.position, Vector3.down, jumpHeight, groundMask);
+    }
     private void StartWallrun()
     {
         playerMov.isWallrunning = true;
+
+      
     }
     private void WallrunMovement()
     {
+      //  rb.useGravity = usingGravity;
         rb.useGravity = false;
-        rb.velocity = new Vector3(rb.velocity.x,0f,rb.velocity.z);
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
         Vector3 wallNormal;
 
@@ -99,11 +132,33 @@ public class PlayerWallrun : MonoBehaviour
         }
 
         rb.AddForce(wallForward*wallrunForce,ForceMode.Force);
+
+        if(usingGravity)
+        {
+          //  rb.AddForce(transform.up*gravityCounter,ForceMode.Force);
+        }
+
     }
     private void StopWallrun()
     {
         playerMov.isWallrunning = false;
     }
 
+    private void WallJump()
+    {
+        exitWall = true;
+        exitTimer = exitTime; 
+
+        Vector3 wallNormal;
+
+        if (isWallR) wallNormal = rWallHit.normal;
+        else wallNormal = lWallHit.normal;
+
+        Vector3 finalJumpForce = transform.up * wallrunJumpUpForce + wallNormal * wallrunJumpSideForce;
+
+        rb.velocity = new Vector3(rb.velocity.x,0f,rb.velocity.z);
+        rb.AddForce(finalJumpForce, ForceMode.Impulse);
+
+    }
 
 }

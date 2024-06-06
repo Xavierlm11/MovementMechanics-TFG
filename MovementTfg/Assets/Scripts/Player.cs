@@ -305,12 +305,12 @@ public class Player : MonoBehaviour
         else if (canDoubleJump && Input.GetKeyDown(jumpKey)) // si no funka meter otro if debajo
         {
 
-            if (jumpCount >= jumps - 1)
+            if (jumpCount >= jumps )
             {
                 canDoubleJump = false;
                 //jumpCount = 0;
             }
-            Jump();
+            else Jump();
 
         }
     }
@@ -342,6 +342,11 @@ public class Player : MonoBehaviour
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
         }
 
+       //if(isWallrunning)
+       // {
+
+       // rb.useGravity = !IsOnSlope();
+       // }
         rb.useGravity = !IsOnSlope();
 
         if (IsOnSlope() && speed >= slideSpeed)
