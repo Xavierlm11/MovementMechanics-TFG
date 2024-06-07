@@ -40,12 +40,13 @@ public class PlayerWallrun : MonoBehaviour
     public Transform playerObj;
     private Rigidbody rb;
     private Player playerMov;
-
+    
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         playerMov = GetComponent<Player>();
+        
     }
 
     // Update is called once per frame
@@ -111,7 +112,7 @@ public class PlayerWallrun : MonoBehaviour
     {
         playerMov.isWallrunning = true;
 
-      
+       
     }
     private void WallrunMovement()
     {
@@ -142,6 +143,7 @@ public class PlayerWallrun : MonoBehaviour
     private void StopWallrun()
     {
         playerMov.isWallrunning = false;
+       
     }
 
     private void WallJump()

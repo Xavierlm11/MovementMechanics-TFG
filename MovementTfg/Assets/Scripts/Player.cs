@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
@@ -52,6 +54,8 @@ public class Player : MonoBehaviour
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode LdashKey = KeyCode.LeftShift;
     public KeyCode LcrouchKey = KeyCode.LeftControl;
+    public KeyCode respawnKey = KeyCode.R;
+    public KeyCode restartKey = KeyCode.F1;
 
     [Header("Ground")]
     public float playerHeight = 1.0f;
@@ -87,7 +91,15 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject spawner;
     private Transform spawnPoint;
+    [Header("Camera")]
+    public PlayerCam cam;
+    public float fovAdition = 15f;
 
+    [Header("Checkpoints")]
+    public Transform actualCheckpoint;
+
+    private bool isFovChanged = false;
+    //public float fovReduction = 80f;
 
     public TMP_Text stateTextObj;
     public TMP_Text velTextObj;
@@ -120,18 +132,16 @@ public class Player : MonoBehaviour
 
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, groundMask);
 
-
-       
         UpdateInputs();
-        
+
         VelocityControl();
-        
+
         StateManager();
-        
+
         if (inGround)
         {
             rb.drag = groundDrag;
-            
+
             if (jumped)
             {
                 jumped = false;
@@ -145,31 +155,33 @@ public class Player : MonoBehaviour
             rb.drag = 0;
         }
 
-       // Debug.Log("speed " + currentSpeed.ToString());
+        // Debug.Log("speed " + currentSpeed.ToString());
 
         //reset position
-        if (transform.position.y < playerLimit)
+        if (transform.position.y < playerLimit || Input.GetKeyDown(respawnKey))
         {
-            transform.position = spawnPoint.position;
+            RespawnPlayer();
         }
-       
+        if(Input.GetKeyDown(restartKey) )
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+    }
+
+    private void RespawnPlayer()
+    {
+        transform.position = actualCheckpoint.position;
     }
 
     private void FixedUpdate()
     {
-        
+
         PlayerMovement();
-        
+
         transform.rotation = orientation.rotation;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Coin"))
-        {
-
-        }
-    }
 
     private void UpdateInputs()
     {
@@ -179,9 +191,9 @@ public class Player : MonoBehaviour
         //jump
 
         JumpingManage();
-        
+
         CrouchManager();
-        
+
     }
 
     private void CrouchManager()
@@ -204,18 +216,18 @@ public class Player : MonoBehaviour
             movState = MovementState.Wallrunning;
             aimedMoveSpeed = wallrunSpeed;
         }
-         if (isSliding)
+        if (isSliding)
         {
             movState = MovementState.Sliding;
             if (IsOnSlope() && rb.velocity.y < 0.1f)
             {
                 aimedMoveSpeed = slideSpeed;
-               // Debug.Log("slippppp");
+                // Debug.Log("slippppp");
             }
             else
             {
                 aimedMoveSpeed = moveSpeed + addSlideSpeed;
-                
+
             }
 
             if (IsOnSlope() && speed >= slideSpeed)
@@ -226,7 +238,7 @@ public class Player : MonoBehaviour
 
             movState = MovementState.Crouching;
             aimedMoveSpeed = crouchSpeed;
-           
+
         }
         else if (inGround)
         {
@@ -250,11 +262,11 @@ public class Player : MonoBehaviour
         }
         maxAimedMoveSpeed = aimedMoveSpeed;
 
-        
+
 
         stateTextObj.text = "State: " + movState.ToString();
 
-   
+
     }
 
     private IEnumerator LerpSpeed()
@@ -264,9 +276,9 @@ public class Player : MonoBehaviour
         float startVal = speed;
 
         if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("lerpe 1 : " + speed); 
+            Debug.Log("lerpe 1 : " + speed);
 
-       
+
 
         while (time < diff)
         {
@@ -285,11 +297,8 @@ public class Player : MonoBehaviour
 
             yield return null;
         }
-        
 
         speed = aimedMoveSpeed;
-
-        
 
     }
     private void JumpingManage()
@@ -305,7 +314,7 @@ public class Player : MonoBehaviour
         else if (canDoubleJump && Input.GetKeyDown(jumpKey)) // si no funka meter otro if debajo
         {
 
-            if (jumpCount >= jumps )
+            if (jumpCount >= jumps)
             {
                 canDoubleJump = false;
                 //jumpCount = 0;
@@ -320,7 +329,7 @@ public class Player : MonoBehaviour
         moveDirection = orientation.forward * inputs.y + orientation.right * inputs.x;
 
         finalForce = moveDirection.normalized * speed * 10f;
-       
+
 
         if (IsOnSlope() && !leavingSlope)
         {
@@ -331,33 +340,33 @@ public class Player : MonoBehaviour
                 //to keep the plyer on hte slope and not do weid jumps
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
             }
-            
+
         }
         else if (inGround)
         {
             rb.AddForce(finalForce, ForceMode.Force);
         }
-        else if (!inGround) 
+        else if (!inGround)
         {
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
         }
 
-       //if(isWallrunning)
-       // {
+        //if(isWallrunning)
+        // {
 
-       // rb.useGravity = !IsOnSlope();
-       // }
+        // rb.useGravity = !IsOnSlope();
+        // }
         rb.useGravity = !IsOnSlope();
 
         if (IsOnSlope() && speed >= slideSpeed)
             Debug.Log("speed on slope 3 : " + speed);
 
-        
+
     }
     private void VelocityControl() // limits player's velocity
     {
         Vector3 vel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        
+
 
         if (IsOnSlope() && !leavingSlope)
         {
@@ -376,13 +385,28 @@ public class Player : MonoBehaviour
         }
         currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
         //currentSpeed = vel.magnitude;
-       
-        if(!IsOnSlope())
+
+
+        if (rb.velocity.magnitude > 8f && !isFovChanged)
+        {
+            isFovChanged = true;
+            StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
+            Debug.Log("fovingg: ");
+        }
+        else if (rb.velocity.magnitude < 3f && isFovChanged)
+        {
+            Debug.Log("DEfovingg: ");
+            isFovChanged = false;
+            StartCoroutine(cam.LerpFov(cam.startFov));
+        }
+
+
+        if (!IsOnSlope())
             velTextObj.text = "Vel: " + Mathf.Round(currentSpeed).ToString("0.00");
         else
             velTextObj.text = "Vel: " + Mathf.Round(rb.velocity.magnitude).ToString("0.00");
 
-        
+
     }
 
     private void Jump()
@@ -429,6 +453,11 @@ public class Player : MonoBehaviour
     private void ResetDash()
     {
         canDash = true;
+    }
+
+    public void SetCheckpoint(Transform position)
+    {
+        actualCheckpoint = position;
     }
 
 }

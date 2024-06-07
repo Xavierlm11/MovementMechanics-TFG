@@ -6,20 +6,32 @@ public class PlayerCam : MonoBehaviour
 {
 
     [SerializeField]
-    Vector2 sensitivity = Vector2.one;
+    private Vector2 sensitivity = Vector2.one;
 
     [Range(0f, 10f)]
     [SerializeField]
     public float generalSensitivity = 1f;
 
     [SerializeField]
-    Vector2 camRotation = Vector2.zero;
+    private Vector2 camRotation = Vector2.zero;
 
     [SerializeField]
-    Transform orientation;
+    private  Transform orientation;
+
+     [SerializeField]
+    private Transform camHolder;
 
     [SerializeField]
-    Transform player;
+    private Transform player;
+
+    public Camera cam;
+
+    public float startFov;
+    public float actualFov;
+
+    private float maxFovAngle;
+    public float fovLerpTime;
+
 
 
     // Start is called before the first frame update
@@ -27,14 +39,16 @@ public class PlayerCam : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        cam = GetComponent<Camera>();
+        startFov = cam.fieldOfView;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        actualFov = cam.fieldOfView;
         // mouse input
-        
+
         float inputX = Input.GetAxis("Mouse X") * Time.deltaTime * sensitivity.x * generalSensitivity;
         float inputY = Input.GetAxis("Mouse Y") * Time.deltaTime * sensitivity.y * generalSensitivity;
 
@@ -45,7 +59,61 @@ public class PlayerCam : MonoBehaviour
         camRotation.y = Mathf.Clamp(camRotation.y, -90f, 90f);
 
         transform.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
+        //camHolder.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
         orientation.rotation = Quaternion.Euler(0, camRotation.x, 0);
        
     }
+
+    public void ChangeFOV(float fov)
+    {
+
+    }
+
+    public void CamTiling(float titl)
+    {
+
+    }
+
+    public IEnumerator LerpFov(float fov)
+    {
+        float time = 0;
+        float duration = fovLerpTime;
+        //float diff = Mathf.Abs(aimfov - speed); //differenve
+        float startVal = cam.fieldOfView;
+        float endVal =  fov;
+
+
+        while (time < duration)
+        {
+            cam.fieldOfView = Mathf.Lerp(startVal, endVal, time / duration);
+            time += Time.deltaTime;
+          
+
+            yield return null;
+        }
+
+        cam.fieldOfView = endVal;
+
+    }
+    /*public IEnumerator LerpTilt()
+    {
+        float time = 0;
+        float duration = 0;
+        //float diff = Mathf.Abs(aimfov - speed); //differenve
+        float startVal = 0;
+        float endVal = maxFovAngle;
+
+
+        while (time < duration)
+        {
+             = Mathf.Lerp(startVal, endVal, time / duration);
+            time += Time.deltaTime;
+          
+
+            yield return null;
+        }
+
+        fovAngle = endVal;
+
+    }*/
 }
