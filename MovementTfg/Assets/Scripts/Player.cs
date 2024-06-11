@@ -25,7 +25,8 @@ public class Player : MonoBehaviour
 
     public float speedMultiply;
     public float slopeMultiply;
-
+    private Vector3 velToSet;
+    private bool enableMov;
 
     [Header("Jump")]
     public float jumpForce;
@@ -83,7 +84,7 @@ public class Player : MonoBehaviour
 
     public MovementState movState;
 
-    private PlayerSliding playerSlideCs;
+    private PlayerSliding playerSlideSc;
 
     public bool isSliding;
     public bool isWallrunning;
@@ -99,6 +100,10 @@ public class Player : MonoBehaviour
     public Transform actualCheckpoint;
 
     private bool isFovChanged = false;
+    public bool isFreeze;
+    public bool activeGrapple;
+    private PlayerGrappling playerGrapplingSc;
+
     //public float fovReduction = 80f;
 
     public TMP_Text stateTextObj;
@@ -110,6 +115,7 @@ public class Player : MonoBehaviour
         Wallrunning,
         Sliding,
         Crouching,
+        Freeze,
         Air
     }
 
@@ -117,7 +123,8 @@ public class Player : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        playerSlideCs = GetComponent<PlayerSliding>();
+        playerSlideSc = GetComponent<PlayerSliding>();
+        playerGrapplingSc = GetComponent<PlayerGrappling>();
         rb.freezeRotation = true;
         startYScale = transform.localScale.y;
         spawnPoint = spawner.transform.GetChild(0).transform;
@@ -133,12 +140,10 @@ public class Player : MonoBehaviour
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, groundMask);
 
         UpdateInputs();
-
         VelocityControl();
-
         StateManager();
 
-        if (inGround)
+        if (inGround && !activeGrapple)
         {
             rb.drag = groundDrag;
 
@@ -162,24 +167,33 @@ public class Player : MonoBehaviour
         {
             RespawnPlayer();
         }
-        if(Input.GetKeyDown(restartKey) )
+        if (Input.GetKeyDown(restartKey))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
     }
-
-    private void RespawnPlayer()
-    {
-        transform.position = actualCheckpoint.position;
-    }
-
     private void FixedUpdate()
     {
 
         PlayerMovement();
 
         transform.rotation = orientation.rotation;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(enableMov)
+        {
+            enableMov = false;
+            ResetRestrictions();
+           playerGrapplingSc.StopGrapple();
+        }
+    }
+
+    private void RespawnPlayer()
+    {
+        transform.position = actualCheckpoint.position;
     }
 
 
@@ -211,12 +225,19 @@ public class Player : MonoBehaviour
 
     private void StateManager()
     {
+
         if (isWallrunning)
         {
             movState = MovementState.Wallrunning;
             aimedMoveSpeed = wallrunSpeed;
         }
-        if (isSliding)
+        if (isFreeze)
+        {
+            movState = MovementState.Freeze;
+            //aimedMoveSpeed = 0;
+            //rb.velocity = Vector3.zero;
+        }
+        else if (isSliding)
         {
             movState = MovementState.Sliding;
             if (IsOnSlope() && rb.velocity.y < 0.1f)
@@ -326,6 +347,8 @@ public class Player : MonoBehaviour
 
     private void PlayerMovement()//apply force to move
     {
+        if (activeGrapple)
+            return;
         moveDirection = orientation.forward * inputs.y + orientation.right * inputs.x;
 
         finalForce = moveDirection.normalized * speed * 10f;
@@ -365,8 +388,9 @@ public class Player : MonoBehaviour
     }
     private void VelocityControl() // limits player's velocity
     {
+        if (activeGrapple)
+            return;
         Vector3 vel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
 
         if (IsOnSlope() && !leavingSlope)
         {
@@ -460,4 +484,32 @@ public class Player : MonoBehaviour
         actualCheckpoint = position;
     }
 
+    public Vector3 CalculateParabolicJump(Vector3 startPos, Vector3 endPos, float maxHeight)
+    {
+        float gravity = Physics.gravity.y;
+        float heightDiff = endPos.y - startPos.y;
+        Vector3 posXZDiff = new Vector3(endPos.x - startPos.x, 0f, endPos.z - startPos.z);
+        Vector3 velY = Vector3.up * Mathf.Sqrt(-2 * gravity * maxHeight);
+        Vector3 velXZ = posXZDiff / (Mathf.Sqrt(-2 * maxHeight / gravity) + Mathf.Sqrt(2 * (heightDiff - maxHeight) / gravity));
+
+        return velXZ + velY;
+    }
+    public void JumpToPosition(Vector3 finalPos, float jumpHeight)
+    {
+        activeGrapple = true;
+        velToSet = CalculateParabolicJump(transform.position, finalPos, jumpHeight);
+        Invoke(nameof(SetVelocity), 0.1f);
+        Invoke(nameof(ResetRestrictions), 3f);// in case doesnt reset movement
+    }
+
+    private void SetVelocity()
+    {
+        enableMov = true;
+        rb.velocity = velToSet;
+    }
+
+    private void ResetRestrictions()
+    {
+        activeGrapple=false;
+    }
 }

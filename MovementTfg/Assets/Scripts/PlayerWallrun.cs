@@ -16,7 +16,7 @@ public class PlayerWallrun : MonoBehaviour
     private float wallrunTimer;
 
     private bool exitWall;
-    [SerializeField]private float exitTime;
+    [SerializeField] private float exitTime;
     private float exitTimer;
 
     [Header("Inputs")]
@@ -40,13 +40,14 @@ public class PlayerWallrun : MonoBehaviour
     public Transform playerObj;
     private Rigidbody rb;
     private Player playerMov;
-    
+    public PlayerCam cam;
+    public float camTiltAngle = 5f;
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         playerMov = GetComponent<Player>();
-        
+        cam = playerMov.cam;
     }
 
     // Update is called once per frame
@@ -58,7 +59,7 @@ public class PlayerWallrun : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if(playerMov.isWallrunning)
+        if (playerMov.isWallrunning)
         {
             WallrunMovement();
         }
@@ -69,29 +70,29 @@ public class PlayerWallrun : MonoBehaviour
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        if((isWallL) || (isWallR)&& inputs.y > 0 && !GetIsInGround() && !exitWall)
+        if ((isWallL) || (isWallR) && inputs.y > 0 && !GetIsInGround() && !exitWall)
         {
-            if(!playerMov.isWallrunning)
+            if (!playerMov.isWallrunning)
             {
                 StartWallrun();
             }
-            if(Input.GetKeyDown(jumpKey))
+            if (Input.GetKeyDown(jumpKey))
             {
                 WallJump();
             }
         }
         else if (exitWall)
         {
-            if(playerMov.isWallrunning)
+            if (playerMov.isWallrunning)
             {
                 StopWallrun();
             }
-            if(exitTimer>0)
+            if (exitTimer > 0)
             {
                 exitTimer -= Time.deltaTime;
 
             }
-            if(exitTimer>=0)
+            if (exitTimer >= 0)
             {
                 exitWall = false;
             }
@@ -112,44 +113,47 @@ public class PlayerWallrun : MonoBehaviour
     {
         playerMov.isWallrunning = true;
 
-       
+        if (isWallL) StartCoroutine(cam.LerpTilt(camTiltAngle));
+        else StartCoroutine(cam.LerpTilt(-camTiltAngle));
+
     }
     private void WallrunMovement()
     {
-      //  rb.useGravity = usingGravity;
+        //  rb.useGravity = usingGravity;
         rb.useGravity = false;
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
         Vector3 wallNormal;
 
-        if(isWallR) wallNormal = rWallHit.normal;
+        if (isWallR) wallNormal = rWallHit.normal;
         else wallNormal = lWallHit.normal;
 
         Vector3 wallForward = Vector3.Cross(wallNormal, transform.up);
 
-        if((orientation.forward-wallForward).magnitude > (orientation.forward - -wallForward).magnitude) 
-        { 
+        if ((orientation.forward - wallForward).magnitude > (orientation.forward - -wallForward).magnitude)
+        {
             wallForward = -wallForward;
         }
 
-        rb.AddForce(wallForward*wallrunForce,ForceMode.Force);
+        rb.AddForce(wallForward * wallrunForce, ForceMode.Force);
 
-        if(usingGravity)
+        if (usingGravity)
         {
-          //  rb.AddForce(transform.up*gravityCounter,ForceMode.Force);
+            //  rb.AddForce(transform.up*gravityCounter,ForceMode.Force);
         }
 
     }
     private void StopWallrun()
     {
         playerMov.isWallrunning = false;
-       
+
+        StartCoroutine(cam.LerpTilt(0));
     }
 
     private void WallJump()
     {
         exitWall = true;
-        exitTimer = exitTime; 
+        exitTimer = exitTime;
 
         Vector3 wallNormal;
 
@@ -158,7 +162,7 @@ public class PlayerWallrun : MonoBehaviour
 
         Vector3 finalJumpForce = transform.up * wallrunJumpUpForce + wallNormal * wallrunJumpSideForce;
 
-        rb.velocity = new Vector3(rb.velocity.x,0f,rb.velocity.z);
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
         rb.AddForce(finalJumpForce, ForceMode.Impulse);
 
     }

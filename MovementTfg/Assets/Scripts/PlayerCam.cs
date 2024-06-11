@@ -31,6 +31,7 @@ public class PlayerCam : MonoBehaviour
 
     private float maxFovAngle;
     public float fovLerpTime;
+    public float tiltLerpTime;
 
 
 
@@ -58,20 +59,10 @@ public class PlayerCam : MonoBehaviour
         camRotation.y -= inputY;
         camRotation.y = Mathf.Clamp(camRotation.y, -90f, 90f);
 
-        transform.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
-        //camHolder.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
+        //transform.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
+        camHolder.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
         orientation.rotation = Quaternion.Euler(0, camRotation.x, 0);
        
-    }
-
-    public void ChangeFOV(float fov)
-    {
-
-    }
-
-    public void CamTiling(float titl)
-    {
-
     }
 
     public IEnumerator LerpFov(float fov)
@@ -95,25 +86,25 @@ public class PlayerCam : MonoBehaviour
         cam.fieldOfView = endVal;
 
     }
-    /*public IEnumerator LerpTilt()
+    public IEnumerator LerpTilt(float tilt)
     {
         float time = 0;
-        float duration = 0;
+        float duration = tiltLerpTime;
         //float diff = Mathf.Abs(aimfov - speed); //differenve
-        float startVal = 0;
-        float endVal = maxFovAngle;
+        float startVal = cam.transform.localRotation.z;
+        float endVal = tilt;
 
-
+        Debug.Log("Tiltingh");
         while (time < duration)
         {
-             = Mathf.Lerp(startVal, endVal, time / duration);
+            cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, Mathf.Lerp(startVal, endVal, time / duration)) ;
             time += Time.deltaTime;
           
 
             yield return null;
         }
 
-        fovAngle = endVal;
+        cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, endVal); 
 
-    }*/
+    }
 }
