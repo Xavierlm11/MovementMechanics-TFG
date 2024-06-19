@@ -41,6 +41,7 @@ public class PlayerGrappling : MonoBehaviour
         if (Input.GetKeyDown(grappleKey))
         {
             StartGrapple();
+
         }
         if (grappleTimer > 0)
         {
@@ -84,9 +85,9 @@ public class PlayerGrappling : MonoBehaviour
     {
         playerMov.isFreeze = false;
 
-        Vector3 lowPoint = new Vector3(transform.position.x, transform.position.y-1f, transform.position.z);
+        Vector3 lowPoint = new Vector3(transform.position.x, transform.position.y - 1f, transform.position.z);
 
-        float grapplePointYPos=grapplePoint.y-lowPoint.y;
+        float grapplePointYPos = grapplePoint.y - lowPoint.y;
         float highPointParabolic = grapplePointYPos + shootToY;
 
         if (grapplePointYPos < 0)

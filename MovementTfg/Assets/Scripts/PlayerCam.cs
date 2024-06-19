@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PlayerCam : MonoBehaviour
@@ -16,9 +17,9 @@ public class PlayerCam : MonoBehaviour
     private Vector2 camRotation = Vector2.zero;
 
     [SerializeField]
-    private  Transform orientation;
+    private Transform orientation;
 
-     [SerializeField]
+    [SerializeField]
     private Transform camHolder;
 
     [SerializeField]
@@ -33,7 +34,10 @@ public class PlayerCam : MonoBehaviour
     public float fovLerpTime;
     public float tiltLerpTime;
 
-
+    public GameObject optionsPanel;
+    public TMP_Text sensibilityText;
+    public TMP_Text FOVText;
+    private bool activePanel = false;
 
     // Start is called before the first frame update
     void Start()
@@ -42,6 +46,7 @@ public class PlayerCam : MonoBehaviour
         Cursor.visible = false;
         cam = GetComponent<Camera>();
         startFov = cam.fieldOfView;
+        optionsPanel.SetActive(activePanel);
     }
 
     // Update is called once per frame
@@ -60,9 +65,15 @@ public class PlayerCam : MonoBehaviour
         camRotation.y = Mathf.Clamp(camRotation.y, -90f, 90f);
 
         //transform.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
-        camHolder.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
+        camHolder.rotation = Quaternion.Euler(camRotation.y, camRotation.x, 0);
         orientation.rotation = Quaternion.Euler(0, camRotation.x, 0);
-       
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+
+            GameOptions();
+        }
+        ManageText();
     }
 
     public IEnumerator LerpFov(float fov)
@@ -71,14 +82,14 @@ public class PlayerCam : MonoBehaviour
         float duration = fovLerpTime;
         //float diff = Mathf.Abs(aimfov - speed); //differenve
         float startVal = cam.fieldOfView;
-        float endVal =  fov;
+        float endVal = fov;
 
 
         while (time < duration)
         {
             cam.fieldOfView = Mathf.Lerp(startVal, endVal, time / duration);
             time += Time.deltaTime;
-          
+
 
             yield return null;
         }
@@ -97,14 +108,50 @@ public class PlayerCam : MonoBehaviour
         Debug.Log("Tiltingh");
         while (time < duration)
         {
-            cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, Mathf.Lerp(startVal, endVal, time / duration)) ;
+            cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, Mathf.Lerp(startVal, endVal, time / duration));
             time += Time.deltaTime;
-          
+
 
             yield return null;
         }
 
-        cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, endVal); 
+        cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, endVal);
 
+    }
+
+    public void ChangeSensibility(float sensibility)
+    {
+        generalSensitivity = sensibility;
+    }
+
+    public void GameOptions()
+    {
+
+        // activePanel = activePanel != optionsPanel.activeSelf ? true : false;
+       // bool v = activePanel != optionsPanel.activeSelf;
+
+        if (activePanel) activePanel = false;
+        else activePanel = true;
+
+
+        optionsPanel.SetActive(activePanel);
+        if (activePanel)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Time.timeScale = 0;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Time.timeScale = 1;
+        }
+    }
+
+    public void ManageText()
+    {
+        FOVText.text = cam.fieldOfView.ToString("0.00");
+        sensibilityText.text = generalSensitivity.ToString("0.00");
     }
 }

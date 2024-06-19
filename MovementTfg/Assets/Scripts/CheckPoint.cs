@@ -8,14 +8,14 @@ public class CheckPoint : MonoBehaviour
     private Player player;
     private void Start()
     {
-        transChild = transform.GetChild(0).transform;
-        player=GameObject.Find("Player").GetComponent<Player>();
+        transChild = transform.GetChild(0).GetChild(0).transform;
+        player = GameObject.Find("Player").GetComponent<Player>();
     }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            player.SetCheckpoint(transChild) ;
+            player.SetCheckpoint(transChild);
         }
     }
 }

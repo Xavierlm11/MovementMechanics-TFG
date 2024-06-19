@@ -70,7 +70,7 @@ public class PlayerWallrun : MonoBehaviour
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        if ((isWallL) || (isWallR) && inputs.y > 0 && !GetIsInGround() && !exitWall)
+        if ((isWallL || isWallR) && inputs.y > 0 && !GetIsInGround() && !exitWall)
         {
             if (!playerMov.isWallrunning)
             {
@@ -123,6 +123,7 @@ public class PlayerWallrun : MonoBehaviour
         rb.useGravity = false;
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
+
         Vector3 wallNormal;
 
         if (isWallR) wallNormal = rWallHit.normal;
@@ -143,7 +144,7 @@ public class PlayerWallrun : MonoBehaviour
         }
 
     }
-    private void StopWallrun()
+    public void StopWallrun()
     {
         playerMov.isWallrunning = false;
 

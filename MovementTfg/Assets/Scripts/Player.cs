@@ -14,14 +14,9 @@ public class Player : MonoBehaviour
     public float groundDrag;
     public float moveSpeed = 10f;
     private float speed = 1.0f;
-    [SerializeField]
-    private float slideSpeed = 1.0f;
-    [SerializeField]
-    private float addSlideSpeed = 1.0f;
     private float aimedMoveSpeed;
     private float maxAimedMoveSpeed;
-    [SerializeField]
-    private float wallrunSpeed = 1.0f;
+    private bool keepMomentum;
 
     public float speedMultiply;
     public float slopeMultiply;
@@ -46,10 +41,20 @@ public class Player : MonoBehaviour
     private float startYScale;
 
     [Header("Dash")]
-    public float dashForce;
-    public float dashCooldown;
-    //public float airMultiplier;
-    bool canDash = true;
+    public bool isDashing;
+    public float dashSpeed;
+    public float dashSpeedMultiplier;
+    [Header("Slide")]
+    public bool isSliding;
+    [SerializeField]
+    private float slideSpeed = 1.0f;
+    [SerializeField]
+    private float addSlideSpeed = 1.0f;
+
+    [Header("Wallrun")]
+    public bool isWallrunning;
+    [SerializeField]
+    private float wallrunSpeed = 1.0f;
 
     [Header("Keys")]
     public KeyCode jumpKey = KeyCode.Space;
@@ -80,29 +85,28 @@ public class Player : MonoBehaviour
     private Vector3 finalForce;
 
 
-    public float playerLimit = -10.0f;
 
     public MovementState movState;
+    public MovementState lastMovState;
 
     private PlayerSliding playerSlideSc;
 
-    public bool isSliding;
-    public bool isWallrunning;
 
-    [SerializeField]
-    private GameObject spawner;
-    private Transform spawnPoint;
+
+    
+    
     [Header("Camera")]
     public PlayerCam cam;
     public float fovAdition = 15f;
 
     [Header("Checkpoints")]
     public Transform actualCheckpoint;
-
+    [SerializeField]
     private bool isFovChanged = false;
     public bool isFreeze;
     public bool activeGrapple;
     private PlayerGrappling playerGrapplingSc;
+    public float playerLimit = -10.0f;
 
     //public float fovReduction = 80f;
 
@@ -127,8 +131,6 @@ public class Player : MonoBehaviour
         playerGrapplingSc = GetComponent<PlayerGrappling>();
         rb.freezeRotation = true;
         startYScale = transform.localScale.y;
-        spawnPoint = spawner.transform.GetChild(0).transform;
-        transform.position = spawnPoint.position;
 
 
     }
@@ -136,14 +138,17 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (!rb.useGravity)
+        {
+            Debug.Log("not using graviyy");
+        }
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, groundMask);
 
         UpdateInputs();
         VelocityControl();
         StateManager();
 
-        if (inGround && !activeGrapple)
+        if (inGround && !activeGrapple && movState !=MovementState.Dashing)
         {
             rb.drag = groundDrag;
 
@@ -183,11 +188,11 @@ public class Player : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(enableMov)
+        if (enableMov)
         {
             enableMov = false;
             ResetRestrictions();
-           playerGrapplingSc.StopGrapple();
+            playerGrapplingSc.StopGrapple();
         }
     }
 
@@ -237,22 +242,24 @@ public class Player : MonoBehaviour
             //aimedMoveSpeed = 0;
             //rb.velocity = Vector3.zero;
         }
+        else if (isDashing)
+        {
+            movState = MovementState.Dashing;
+            aimedMoveSpeed = dashSpeed;
+            speedMultiply = dashSpeedMultiplier;
+        }
         else if (isSliding)
         {
             movState = MovementState.Sliding;
             if (IsOnSlope() && rb.velocity.y < 0.1f)
             {
                 aimedMoveSpeed = slideSpeed;
-                // Debug.Log("slippppp");
             }
             else
             {
                 aimedMoveSpeed = moveSpeed + addSlideSpeed;
 
             }
-
-            if (IsOnSlope() && speed >= slideSpeed)
-                Debug.Log("state 2 : " + speed);
         }
         else if (Input.GetKey(LcrouchKey) && inGround)
         {
@@ -267,26 +274,52 @@ public class Player : MonoBehaviour
             aimedMoveSpeed = moveSpeed;
 
         }
-        else //if (!inGround)
+        else //if (!inGround) // air state
         {
             movState = MovementState.Air;
+
+            aimedMoveSpeed = moveSpeed;
+        }
+        bool aimedSpeedChanged = aimedMoveSpeed != maxAimedMoveSpeed;
+
+        if (lastMovState == MovementState.Dashing)
+        {
+            keepMomentum = true;
+        }
+        if (aimedSpeedChanged)
+        {
+            if (keepMomentum)
+            {
+                StopAllCoroutines();
+                StartCoroutine(LerpSpeed());
+            }
+            else
+            {
+                StopAllCoroutines();
+                speed = aimedMoveSpeed;
+            }
         }
 
         if (Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed) > 4f && speed != 0) // 4 is the speed where it start the smooth change of velocity
         {
             StopAllCoroutines();
             StartCoroutine(LerpSpeed());
+
         }
         else
         {
+            if (!inGround)
+            {
+
+                Debug.Log("eeeeeee: " + aimedMoveSpeed);
+
+            }
             speed = aimedMoveSpeed;
+
         }
         maxAimedMoveSpeed = aimedMoveSpeed;
 
-
-
         stateTextObj.text = "State: " + movState.ToString();
-
 
     }
 
@@ -296,8 +329,8 @@ public class Player : MonoBehaviour
         float diff = Mathf.Abs(aimedMoveSpeed - speed); //differenve
         float startVal = speed;
 
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("lerpe 1 : " + speed);
+        //if (IsOnSlope() && speed >= slideSpeed)
+        //      Debug.Log("lerpe 1 : " + speed);
 
 
 
@@ -347,8 +380,12 @@ public class Player : MonoBehaviour
 
     private void PlayerMovement()//apply force to move
     {
-        if (activeGrapple)
+        if (activeGrapple || movState == MovementState.Dashing)
+        {
+            if (isWallrunning)
+                GetComponent<PlayerWallrun>().StopWallrun();
             return;
+        }
         moveDirection = orientation.forward * inputs.y + orientation.right * inputs.x;
 
         finalForce = moveDirection.normalized * speed * 10f;
@@ -372,6 +409,7 @@ public class Player : MonoBehaviour
         else if (!inGround)
         {
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
+            // Debug.Log("aaaaaaaaa: "+ finalForce);
         }
 
         //if(isWallrunning)
@@ -381,8 +419,8 @@ public class Player : MonoBehaviour
         // }
         rb.useGravity = !IsOnSlope();
 
-        if (IsOnSlope() && speed >= slideSpeed)
-            Debug.Log("speed on slope 3 : " + speed);
+        // if (IsOnSlope() && speed >= slideSpeed)
+        //   Debug.Log("speed on slope 3 : " + speed);
 
 
     }
@@ -411,22 +449,24 @@ public class Player : MonoBehaviour
         //currentSpeed = vel.magnitude;
 
 
-        if (rb.velocity.magnitude > 8f && !isFovChanged)
+        if (vel.magnitude > 8f && !isFovChanged)
         {
             isFovChanged = true;
             StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
-            Debug.Log("fovingg: ");
+            // Debug.Log("fovingg: ");
         }
-        else if (rb.velocity.magnitude < 3f && isFovChanged)
+        else if (vel.magnitude < 3f && isFovChanged)
         {
-            Debug.Log("DEfovingg: ");
+            // Debug.Log("DEfovingg: ");
             isFovChanged = false;
             StartCoroutine(cam.LerpFov(cam.startFov));
         }
 
+       // if (rb.velocity.y > -18f)
+         //   Debug.Log("eeeeeeeeeeeeeeeeeeeeeeeee : ");
 
         if (!IsOnSlope())
-            velTextObj.text = "Vel: " + Mathf.Round(currentSpeed).ToString("0.00");
+            velTextObj.text = "Vel: " + Mathf.Round(vel.magnitude).ToString("0.00");
         else
             velTextObj.text = "Vel: " + Mathf.Round(rb.velocity.magnitude).ToString("0.00");
 
@@ -465,20 +505,6 @@ public class Player : MonoBehaviour
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
 
-
-    private void Dash()
-    {
-
-        rb.velocity = new Vector3(0f, rb.velocity.y, rb.velocity.z);
-
-        rb.AddForce(transform.forward * dashForce, ForceMode.Impulse);
-    }
-
-    private void ResetDash()
-    {
-        canDash = true;
-    }
-
     public void SetCheckpoint(Transform position)
     {
         actualCheckpoint = position;
@@ -510,6 +536,6 @@ public class Player : MonoBehaviour
 
     private void ResetRestrictions()
     {
-        activeGrapple=false;
+        activeGrapple = false;
     }
 }
