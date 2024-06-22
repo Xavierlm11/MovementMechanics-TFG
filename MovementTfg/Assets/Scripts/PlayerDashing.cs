@@ -39,8 +39,9 @@ public class PlayerDashing : MonoBehaviour
     // Update is called once per frame 
     void Update()
     {
-        if (Input.GetKeyUp(dashKey))
+        if (Input.GetKeyDown(dashKey) && playerMov.dashCount > 0)
         {
+            // playerMov.dashCount = 0;
             DashAction();
         }
 
@@ -70,7 +71,7 @@ public class PlayerDashing : MonoBehaviour
 
         Vector3 finalForce = direction * dashForce + orientation.up * dashUpwardForce;
 
-        if(disableGravity)
+        if (disableGravity)
         {
             rb.useGravity = false;
         }
@@ -81,17 +82,17 @@ public class PlayerDashing : MonoBehaviour
     }
     private void WaitForDashing()
     {
-       if(resetVel)
+        if (resetVel)
         {
             rb.velocity = Vector3.zero;
         }
-        
+
         rb.AddForce(delayedForce, ForceMode.Impulse);
     }
     private void ResetDash()
     {
         playerMov.isDashing = false;
-        if(disableGravity)
+        if (disableGravity)
         {
             rb.useGravity = true;
         }

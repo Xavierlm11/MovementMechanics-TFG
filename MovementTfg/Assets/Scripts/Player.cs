@@ -1,11 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
+
 
 public class Player : MonoBehaviour
 {
@@ -44,6 +41,8 @@ public class Player : MonoBehaviour
     public bool isDashing;
     public float dashSpeed;
     public float dashSpeedMultiplier;
+    public int dashCount;
+
     [Header("Slide")]
     public bool isSliding;
     [SerializeField]
@@ -92,12 +91,19 @@ public class Player : MonoBehaviour
     private PlayerSliding playerSlideSc;
 
 
+    [Header("Sounds")]
+    private AudioSource playerAudio;
+    public AudioClip stepsClip;
+    public AudioClip steps2Clip;
+    public AudioClip coinClip;
+    public AudioClip dashClip;
+    private float startPitch;
+    private bool steped = false;
 
-    
-    
     [Header("Camera")]
     public PlayerCam cam;
     public float fovAdition = 15f;
+
 
     [Header("Checkpoints")]
     public Transform actualCheckpoint;
@@ -129,9 +135,10 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerSlideSc = GetComponent<PlayerSliding>();
         playerGrapplingSc = GetComponent<PlayerGrappling>();
+        playerAudio = GetComponent<AudioSource>();
         rb.freezeRotation = true;
         startYScale = transform.localScale.y;
-
+        startPitch = playerAudio.pitch;
 
     }
 
@@ -148,10 +155,10 @@ public class Player : MonoBehaviour
         VelocityControl();
         StateManager();
 
-        if (inGround && !activeGrapple && movState !=MovementState.Dashing)
+        if (inGround && !activeGrapple && movState != MovementState.Dashing)
         {
             rb.drag = groundDrag;
-
+            dashCount = 1;
             if (jumped)
             {
                 jumped = false;
@@ -161,10 +168,44 @@ public class Player : MonoBehaviour
         }
         else
         {
+            // if(movState == MovementState.Dashing) dashCount = 0;
             jumped = true;
             rb.drag = 0;
         }
+        if (movState == MovementState.Dashing)
+        {
+            playerAudio.clip = dashClip;
+           // playerAudio.volume = 0.7f;
+            if (!playerAudio.isPlaying)
+            {
+                // playerAudio.Stop(); 
+                playerAudio.pitch = startPitch;
+                playerAudio.Play();
+            }
+        }
+        if ((inputs.x != 0 || inputs.y != 0) && movState != MovementState.Air && movState != MovementState.Sliding && movState != MovementState.Dashing)
+        {
+            if (!playerAudio.isPlaying)
+            {
+                if (steped)
+                {
+                    playerAudio.clip = stepsClip;
+                    steped = false;
+                }
+                else
+                {
+                    playerAudio.clip = steps2Clip;
+                    steped = true;
 
+                }
+                if (movState == MovementState.Wallrunning) playerAudio.pitch = 1.85f;
+                else playerAudio.pitch = startPitch + 0.5f;
+
+                //playerAudio.volume = 0.7f;
+
+                playerAudio.Play();
+            }
+        }
         // Debug.Log("speed " + currentSpeed.ToString());
 
         //reset position
@@ -193,6 +234,21 @@ public class Player : MonoBehaviour
             enableMov = false;
             ResetRestrictions();
             playerGrapplingSc.StopGrapple();
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+
+
+        if (other.CompareTag("Coin"))
+        {
+            playerAudio.clip = coinClip;
+            //playerAudio.volume = 0.7f;
+            //if (!playerAudio.isPlaying)
+            playerAudio.pitch = startPitch;
+            playerAudio.Stop();
+            playerAudio.Play();
         }
     }
 
@@ -236,7 +292,7 @@ public class Player : MonoBehaviour
             movState = MovementState.Wallrunning;
             aimedMoveSpeed = wallrunSpeed;
         }
-        if (isFreeze)
+        else if (isFreeze)
         {
             movState = MovementState.Freeze;
             //aimedMoveSpeed = 0;
@@ -280,6 +336,16 @@ public class Player : MonoBehaviour
 
             aimedMoveSpeed = moveSpeed;
         }
+
+        if (movState == MovementState.Dashing && dashCount > 0)
+        {
+            dashCount = 0;
+        }
+        else if (movState != MovementState.Air && movState != MovementState.Dashing)
+        {
+            dashCount = 1;
+        }
+
         bool aimedSpeedChanged = aimedMoveSpeed != maxAimedMoveSpeed;
 
         if (lastMovState == MovementState.Dashing)
@@ -290,19 +356,22 @@ public class Player : MonoBehaviour
         {
             if (keepMomentum)
             {
-                StopAllCoroutines();
+                //StopAllCoroutines();
+                StopCoroutine(LerpSpeed());
                 StartCoroutine(LerpSpeed());
             }
             else
             {
-                StopAllCoroutines();
+                //StopAllCoroutines();
+                StopCoroutine(LerpSpeed());
                 speed = aimedMoveSpeed;
             }
         }
 
         if (Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed) > 4f && speed != 0) // 4 is the speed where it start the smooth change of velocity
         {
-            StopAllCoroutines();
+            // StopAllCoroutines();
+            StopCoroutine(LerpSpeed());
             StartCoroutine(LerpSpeed());
 
         }
@@ -449,21 +518,33 @@ public class Player : MonoBehaviour
         //currentSpeed = vel.magnitude;
 
 
-        if (vel.magnitude > 8f && !isFovChanged)
+        //if (vel.magnitude > 8f && !isFovChanged)
+        //{
+        //    isFovChanged = true;
+        //    StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
+        //    // Debug.Log("fovingg: ");
+        //}
+        //else if (vel.magnitude < 3f && isFovChanged)
+        //{
+        //    // Debug.Log("DEfovingg: ");
+        //    isFovChanged = false;
+        //    StartCoroutine(cam.LerpFov(cam.startFov));
+        //}  
+        if ((movState == MovementState.Dashing || movState == MovementState.Sliding || activeGrapple) && !isFovChanged)
         {
             isFovChanged = true;
             StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
             // Debug.Log("fovingg: ");
         }
-        else if (vel.magnitude < 3f && isFovChanged)
+        else if ((movState == MovementState.Walking || movState == MovementState.Air || movState == MovementState.Wallrunning || movState == MovementState.Crouching) && isFovChanged)
         {
             // Debug.Log("DEfovingg: ");
             isFovChanged = false;
             StartCoroutine(cam.LerpFov(cam.startFov));
         }
 
-       // if (rb.velocity.y > -18f)
-         //   Debug.Log("eeeeeeeeeeeeeeeeeeeeeeeee : ");
+        // if (rb.velocity.y > -18f)
+        //   Debug.Log("eeeeeeeeeeeeeeeeeeeeeeeee : ");
 
         if (!IsOnSlope())
             velTextObj.text = "Vel: " + Mathf.Round(vel.magnitude).ToString("0.00");

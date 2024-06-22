@@ -18,7 +18,8 @@ public class Coin : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position= new Vector3 (transform.position.x,(float)(Mathf.Sin( Time.time )*0.0002)+transform.position.y, transform.position.z);
+        //transform.position= new Vector3 (transform.position.x,(float)(Mathf.Sin( Time.time )*0.0002)+transform.position.y, transform.position.z);
+        transform.Translate(new Vector3(0,(float)(Mathf.Sin(Time.time) * 0.0002) , 0),Space.World);
         //transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, transform.rotation.z + 1);
         transform.Rotate(0, 0, roationVel);
     }

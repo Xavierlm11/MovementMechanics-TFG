@@ -123,12 +123,17 @@ public class PlayerCam : MonoBehaviour
     {
         generalSensitivity = sensibility;
     }
+    public void ChangeFOV(float FOV)
+    {
+        cam.fieldOfView = FOV;
+        startFov = FOV;
+    }
 
     public void GameOptions()
     {
 
         // activePanel = activePanel != optionsPanel.activeSelf ? true : false;
-       // bool v = activePanel != optionsPanel.activeSelf;
+        // bool v = activePanel != optionsPanel.activeSelf;
 
         if (activePanel) activePanel = false;
         else activePanel = true;
