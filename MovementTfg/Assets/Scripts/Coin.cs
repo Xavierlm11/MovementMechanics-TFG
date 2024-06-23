@@ -18,17 +18,17 @@ public class Coin : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //transform.position= new Vector3 (transform.position.x,(float)(Mathf.Sin( Time.time )*0.0002)+transform.position.y, transform.position.z);
-        transform.Translate(new Vector3(0,(float)(Mathf.Sin(Time.time) * 0.0002) , 0),Space.World);
-        //transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, transform.rotation.z + 1);
-        transform.Rotate(0, 0, roationVel);
+
+        transform.Translate(new Vector3(0, (float)(Mathf.Sin(Time.time) * 0.02) * Time.deltaTime , 0), Space.World);
+
+        transform.Rotate(0, 0, roationVel * Time.deltaTime *256f);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
-            if(!isCollected)
+            if (!isCollected)
                 levelManager.CollectCoin();
             isCollected = true;
             Destroy(gameObject);

@@ -32,7 +32,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4246699558826920522}
-  m_Father: {fileID: 776895755560569723}
+  m_Father: {fileID: 1327157461873001572}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: -7.956, y: -13.06, z: 0}
 --- !u!33 &8538092017450102346
@@ -234,7 +234,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3610890601499689952, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: field of view
-      value: 92.2
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 3610890601499689952, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: near clip plane
@@ -242,11 +242,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6906949068925148630, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6906949068925148630, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -108.61
+      value: -49.9
       objectReference: {fileID: 0}
     - target: {fileID: 6906949068925148630, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: m_LocalPosition.y
@@ -254,7 +254,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6906949068925148630, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3.44
+      value: 66.44
       objectReference: {fileID: 0}
     - target: {fileID: 6906949068925148630, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: m_LocalRotation.w
@@ -287,7 +287,7 @@ PrefabInstance:
     - target: {fileID: 7098246403145092758, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: camHolder
       value: 
-      objectReference: {fileID: 7292778236315981724}
+      objectReference: {fileID: 9049476671015557251}
     - target: {fileID: 7098246403145092758, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: fovLerpTime
       value: 0.25
@@ -298,11 +298,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7098246403145092758, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: sensitivity.x
-      value: 600
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 7098246403145092758, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: sensitivity.y
-      value: 600
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 7098246403145092758, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
       propertyPath: generalSensitivity
@@ -316,12 +316,12 @@ PrefabInstance:
       addedObject: {fileID: 7951136187660531654}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
---- !u!4 &776895755560569723 stripped
+--- !u!4 &1327157461873001572 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3469838990324891953, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
   m_PrefabInstance: {fileID: 2471449816051123541}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &7292778236315981724 stripped
+--- !u!4 &9049476671015557251 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6906949068925148630, guid: 70af098bd2ce3f044b47cc0faff7f2ff, type: 3}
   m_PrefabInstance: {fileID: 2471449816051123541}

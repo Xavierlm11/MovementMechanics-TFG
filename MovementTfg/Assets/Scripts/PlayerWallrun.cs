@@ -79,6 +79,7 @@ public class PlayerWallrun : MonoBehaviour
             if (Input.GetKeyDown(jumpKey))
             {
                 WallJump();
+                playerMov.jumpedSound = true;
             }
         }
         else if (exitWall)

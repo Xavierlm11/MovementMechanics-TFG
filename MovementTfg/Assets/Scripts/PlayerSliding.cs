@@ -40,7 +40,7 @@ public class PlayerSliding : MonoBehaviour
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        if (Input.GetKey(LSlideKey) && (inputs.x != 0 || inputs.y != 0) && playerMov.inGround && !canSlide)
+        if (Input.GetKey(LSlideKey) && (inputs.x != 0 || /*inputs.y != 0 ||*/ inputs.y > 0)  && playerMov.inGround && !canSlide)
         {
 
             StartSlide();

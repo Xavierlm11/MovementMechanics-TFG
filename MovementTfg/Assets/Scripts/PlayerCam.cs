@@ -105,7 +105,7 @@ public class PlayerCam : MonoBehaviour
         float startVal = cam.transform.localRotation.z;
         float endVal = tilt;
 
-        Debug.Log("Tiltingh");
+       // Debug.Log("Tiltingh");
         while (time < duration)
         {
             cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, Mathf.Lerp(startVal, endVal, time / duration));

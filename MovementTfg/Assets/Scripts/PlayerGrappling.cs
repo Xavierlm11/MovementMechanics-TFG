@@ -24,7 +24,7 @@ public class PlayerGrappling : MonoBehaviour
     private Vector2 inputs;
     public KeyCode grappleKey = KeyCode.Mouse1;
     private Vector3 grapplePoint;
-    private bool isGrapppling;
+    public bool isGrapppling;
 
     // Start is called before the first frame update
     void Start()
@@ -69,7 +69,9 @@ public class PlayerGrappling : MonoBehaviour
             if (Physics.Raycast(cam.position, cam.forward, out hit, grappleDistance, grappableMask))
             {
                 grapplePoint = hit.point;
+                playerMov.grappleSound = true;
                 Invoke(nameof(GrappleAction), grappleDelay);
+
             }
             else
             {

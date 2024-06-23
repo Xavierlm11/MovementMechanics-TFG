@@ -42,6 +42,7 @@ public class Player : MonoBehaviour
     public float dashSpeed;
     public float dashSpeedMultiplier;
     public int dashCount;
+    public float maxYSpeed;
 
     [Header("Slide")]
     public bool isSliding;
@@ -61,6 +62,7 @@ public class Player : MonoBehaviour
     public KeyCode LcrouchKey = KeyCode.LeftControl;
     public KeyCode respawnKey = KeyCode.R;
     public KeyCode restartKey = KeyCode.F1;
+    public KeyCode changeSceneKey = KeyCode.F2;
 
     [Header("Ground")]
     public float playerHeight = 1.0f;
@@ -92,13 +94,20 @@ public class Player : MonoBehaviour
 
 
     [Header("Sounds")]
-    private AudioSource playerAudio;
-    public AudioClip stepsClip;
-    public AudioClip steps2Clip;
-    public AudioClip coinClip;
-    public AudioClip dashClip;
-    private float startPitch;
+    public AudioSource stepsSource;
+    public AudioSource steps2Source;
+    public AudioSource coinSource;
+    public AudioSource dashSource;
+    public AudioSource jumpSource;
+    public AudioSource slideSource;
+    public AudioSource grappleSource;
+
+    public float runPitch = 1.85f;
+    public float walkPitch = 1.85f;
+    private float startStepsPitch;
     private bool steped = false;
+    public bool jumpedSound = false;
+    public bool grappleSound = false;
 
     [Header("Camera")]
     public PlayerCam cam;
@@ -135,24 +144,23 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerSlideSc = GetComponent<PlayerSliding>();
         playerGrapplingSc = GetComponent<PlayerGrappling>();
-        playerAudio = GetComponent<AudioSource>();
+
         rb.freezeRotation = true;
         startYScale = transform.localScale.y;
-        startPitch = playerAudio.pitch;
+        startStepsPitch = stepsSource.pitch;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!rb.useGravity)
-        {
-            Debug.Log("not using graviyy");
-        }
+
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, groundMask);
 
         UpdateInputs();
+
         VelocityControl();
+
         StateManager();
 
         if (inGround && !activeGrapple && movState != MovementState.Dashing)
@@ -168,57 +176,100 @@ public class Player : MonoBehaviour
         }
         else
         {
-            // if(movState == MovementState.Dashing) dashCount = 0;
             jumped = true;
             rb.drag = 0;
         }
-        if (movState == MovementState.Dashing)
-        {
-            playerAudio.clip = dashClip;
-           // playerAudio.volume = 0.7f;
-            if (!playerAudio.isPlaying)
-            {
-                // playerAudio.Stop(); 
-                playerAudio.pitch = startPitch;
-                playerAudio.Play();
-            }
-        }
-        if ((inputs.x != 0 || inputs.y != 0) && movState != MovementState.Air && movState != MovementState.Sliding && movState != MovementState.Dashing)
-        {
-            if (!playerAudio.isPlaying)
-            {
-                if (steped)
-                {
-                    playerAudio.clip = stepsClip;
-                    steped = false;
-                }
-                else
-                {
-                    playerAudio.clip = steps2Clip;
-                    steped = true;
 
-                }
-                if (movState == MovementState.Wallrunning) playerAudio.pitch = 1.85f;
-                else playerAudio.pitch = startPitch + 0.5f;
-
-                //playerAudio.volume = 0.7f;
-
-                playerAudio.Play();
-            }
-        }
-        // Debug.Log("speed " + currentSpeed.ToString());
+        AudioManager();
 
         //reset position
         if (transform.position.y < playerLimit || Input.GetKeyDown(respawnKey))
         {
+            rb.velocity = Vector3.zero;
             RespawnPlayer();
         }
         if (Input.GetKeyDown(restartKey))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
+        //if (Input.GetKeyDown(changeSceneKey))
+        //{
+        //    if (SceneManager.GetActiveScene().name != "TestScene")
+        //        SceneManager.LoadScene("TestScene");
+        //    else
+        //        SceneManager.LoadScene("LevelTest");
+        //}
+
 
     }
+
+    private void AudioManager()
+    {
+        //Active audio while dashing
+        if (movState == MovementState.Dashing)
+        {
+            if (!dashSource.isPlaying)
+            {
+                dashSource.Play();
+            }
+        }
+        //Active audio while sliding
+        if (movState == MovementState.Sliding)
+        {
+            if (!slideSource.isPlaying)
+            {
+                slideSource.Play();
+            }
+        }
+        //Active audio while jumping
+        if (jumpedSound)
+        {
+            jumpedSound = false;
+            if (!jumpSource.isPlaying)
+            {
+                jumpSource.Play();
+            }
+        }
+        //Active audio while grappling
+        if (grappleSound)
+        {
+            grappleSound = false;
+            if (!grappleSource.isPlaying)
+            {
+                grappleSource.Play();
+            }
+        }
+
+        //Active audio while walking or wallrunning
+        if ((inputs.x != 0 || inputs.y != 0) && (movState == MovementState.Walking || movState == MovementState.Wallrunning))
+        {
+            if (!stepsSource.isPlaying && !steps2Source.isPlaying)
+            {
+                float PitchToUse = startStepsPitch;
+                if (movState == MovementState.Wallrunning)
+                    PitchToUse = runPitch;
+
+
+                if (steped)
+                {
+
+                    stepsSource.pitch = PitchToUse;
+                    stepsSource.Play();
+                    steped = false;
+                }
+                else
+                {
+                    steps2Source.pitch = PitchToUse;
+                    steps2Source.Play();
+                    steped = true;
+
+                }
+
+
+            }
+        }
+    }
+
     private void FixedUpdate()
     {
 
@@ -243,12 +294,9 @@ public class Player : MonoBehaviour
 
         if (other.CompareTag("Coin"))
         {
-            playerAudio.clip = coinClip;
-            //playerAudio.volume = 0.7f;
-            //if (!playerAudio.isPlaying)
-            playerAudio.pitch = startPitch;
-            playerAudio.Stop();
-            playerAudio.Play();
+
+            if (!coinSource.isPlaying)
+                coinSource.Play();
         }
     }
 
@@ -330,7 +378,7 @@ public class Player : MonoBehaviour
             aimedMoveSpeed = moveSpeed;
 
         }
-        else //if (!inGround) // air state
+        else  // air state
         {
             movState = MovementState.Air;
 
@@ -341,7 +389,7 @@ public class Player : MonoBehaviour
         {
             dashCount = 0;
         }
-        else if (movState != MovementState.Air && movState != MovementState.Dashing)
+        else if (movState != MovementState.Air && movState != MovementState.Dashing && grappleSound || movState == MovementState.Wallrunning)
         {
             dashCount = 1;
         }
@@ -377,12 +425,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            if (!inGround)
-            {
 
-                Debug.Log("eeeeeee: " + aimedMoveSpeed);
-
-            }
             speed = aimedMoveSpeed;
 
         }
@@ -434,7 +477,7 @@ public class Player : MonoBehaviour
             Jump();
             Invoke(nameof(ResetJump), jumpCooldown);
         }
-        else if (canDoubleJump && Input.GetKeyDown(jumpKey)) // si no funka meter otro if debajo
+        else if (canDoubleJump && Input.GetKeyDown(jumpKey))
         {
 
             if (jumpCount >= jumps)
@@ -478,19 +521,10 @@ public class Player : MonoBehaviour
         else if (!inGround)
         {
             rb.AddForce(finalForce * airMultiplier, ForceMode.Force);
-            // Debug.Log("aaaaaaaaa: "+ finalForce);
+
         }
 
-        //if(isWallrunning)
-        // {
-
-        // rb.useGravity = !IsOnSlope();
-        // }
         rb.useGravity = !IsOnSlope();
-
-        // if (IsOnSlope() && speed >= slideSpeed)
-        //   Debug.Log("speed on slope 3 : " + speed);
-
 
     }
     private void VelocityControl() // limits player's velocity
@@ -499,6 +533,7 @@ public class Player : MonoBehaviour
             return;
         Vector3 vel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
+        //control velocity on slopes
         if (IsOnSlope() && !leavingSlope)
         {
             if (rb.velocity.magnitude > speed)
@@ -506,6 +541,7 @@ public class Player : MonoBehaviour
                 rb.velocity = rb.velocity.normalized * speed;
             }
         }
+        // control ground and air velocity
         else
         {
             if (vel.magnitude > speed)
@@ -514,49 +550,39 @@ public class Player : MonoBehaviour
                 rb.velocity = new Vector3(limitVel.x, rb.velocity.y, limitVel.z);
             }
         }
+        //limits Y velocity
+        if (maxYSpeed != 0 && rb.velocity.y > maxYSpeed)
+        {
+            rb.velocity = new Vector3(rb.velocity.x, maxYSpeed, rb.velocity.z);
+        }
+
         currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
-        //currentSpeed = vel.magnitude;
 
 
-        //if (vel.magnitude > 8f && !isFovChanged)
-        //{
-        //    isFovChanged = true;
-        //    StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
-        //    // Debug.Log("fovingg: ");
-        //}
-        //else if (vel.magnitude < 3f && isFovChanged)
-        //{
-        //    // Debug.Log("DEfovingg: ");
-        //    isFovChanged = false;
-        //    StartCoroutine(cam.LerpFov(cam.startFov));
-        //}  
-        if ((movState == MovementState.Dashing || movState == MovementState.Sliding || activeGrapple) && !isFovChanged)
+        if ((movState == MovementState.Dashing || movState == MovementState.Sliding || grappleSound) && !isFovChanged)
         {
             isFovChanged = true;
             StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
-            // Debug.Log("fovingg: ");
+
         }
         else if ((movState == MovementState.Walking || movState == MovementState.Air || movState == MovementState.Wallrunning || movState == MovementState.Crouching) && isFovChanged)
         {
-            // Debug.Log("DEfovingg: ");
+
             isFovChanged = false;
             StartCoroutine(cam.LerpFov(cam.startFov));
         }
-
-        // if (rb.velocity.y > -18f)
-        //   Debug.Log("eeeeeeeeeeeeeeeeeeeeeeeee : ");
 
         if (!IsOnSlope())
             velTextObj.text = "Vel: " + Mathf.Round(vel.magnitude).ToString("0.00");
         else
             velTextObj.text = "Vel: " + Mathf.Round(rb.velocity.magnitude).ToString("0.00");
 
-
     }
 
     private void Jump()
     {
         leavingSlope = true;
+        jumpedSound = true;
 
         jumpCount++;
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);

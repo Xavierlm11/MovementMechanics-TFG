@@ -15,6 +15,7 @@ public class PlayerDashing : MonoBehaviour
     public float dashForce;
     public float dashUpwardForce;
     public float dashDuration;
+    public float maxDashYSpeed;
 
     [Header("Settings")]
     public bool useCamForward = true;
@@ -60,6 +61,8 @@ public class PlayerDashing : MonoBehaviour
 
         playerMov.isDashing = true;
 
+        playerMov.maxYSpeed = maxDashYSpeed;
+
         Transform forwardTrans;
 
         if (useCamForward)
@@ -92,6 +95,7 @@ public class PlayerDashing : MonoBehaviour
     private void ResetDash()
     {
         playerMov.isDashing = false;
+        playerMov.maxYSpeed = 0;
         if (disableGravity)
         {
             rb.useGravity = true;
