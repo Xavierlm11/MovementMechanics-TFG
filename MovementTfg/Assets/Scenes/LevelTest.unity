@@ -57472,7 +57472,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 462207659247077853, guid: e7ca05afae49a264fb9a52bbbfb1b778, type: 3}
       propertyPath: useCamForward
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1106839205693838378, guid: e7ca05afae49a264fb9a52bbbfb1b778, type: 3}
       propertyPath: cam

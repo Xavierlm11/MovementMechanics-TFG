@@ -60,9 +60,7 @@ public class Player : MonoBehaviour
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode LdashKey = KeyCode.LeftShift;
     public KeyCode LcrouchKey = KeyCode.LeftControl;
-    public KeyCode respawnKey = KeyCode.R;
-    public KeyCode restartKey = KeyCode.F1;
-    public KeyCode changeSceneKey = KeyCode.F2;
+    
 
     [Header("Ground")]
     public float playerHeight = 1.0f;
@@ -121,12 +119,8 @@ public class Player : MonoBehaviour
     public bool isFreeze;
     public bool activeGrapple;
     private PlayerGrappling playerGrapplingSc;
-    public float playerLimit = -10.0f;
+    
 
-    //public float fovReduction = 80f;
-
-    public TMP_Text stateTextObj;
-    public TMP_Text velTextObj;
     public enum MovementState
     {
         Walking,
@@ -182,25 +176,7 @@ public class Player : MonoBehaviour
 
         AudioManager();
 
-        //reset position
-        if (transform.position.y < playerLimit || Input.GetKeyDown(respawnKey))
-        {
-            rb.velocity = Vector3.zero;
-            RespawnPlayer();
-        }
-        if (Input.GetKeyDown(restartKey))
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
-        //if (Input.GetKeyDown(changeSceneKey))
-        //{
-        //    if (SceneManager.GetActiveScene().name != "TestScene")
-        //        SceneManager.LoadScene("TestScene");
-        //    else
-        //        SceneManager.LoadScene("LevelTest");
-        //}
-
-
+ 
     }
 
     private void AudioManager()
@@ -300,8 +276,10 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void RespawnPlayer()
+    public void RespawnPlayer()
     {
+        rb.velocity = Vector3.zero;
+        rb.Sleep();
         transform.position = actualCheckpoint.position;
     }
 
@@ -431,7 +409,7 @@ public class Player : MonoBehaviour
         }
         maxAimedMoveSpeed = aimedMoveSpeed;
 
-        stateTextObj.text = "State: " + movState.ToString();
+       
 
     }
 
@@ -556,9 +534,6 @@ public class Player : MonoBehaviour
             rb.velocity = new Vector3(rb.velocity.x, maxYSpeed, rb.velocity.z);
         }
 
-        currentSpeed = new Vector3(rb.velocity.x, 0f, rb.velocity.z).magnitude;
-
-
         if ((movState == MovementState.Dashing || movState == MovementState.Sliding || grappleSound) && !isFovChanged)
         {
             isFovChanged = true;
@@ -573,9 +548,10 @@ public class Player : MonoBehaviour
         }
 
         if (!IsOnSlope())
-            velTextObj.text = "Vel: " + Mathf.Round(vel.magnitude).ToString("0.00");
+            currentSpeed = vel.magnitude;
         else
-            velTextObj.text = "Vel: " + Mathf.Round(rb.velocity.magnitude).ToString("0.00");
+            currentSpeed = rb.velocity.magnitude;
+            
 
     }
 
