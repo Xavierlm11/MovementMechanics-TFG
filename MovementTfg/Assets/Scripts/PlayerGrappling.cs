@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerGrappling : MonoBehaviour
 {
@@ -11,6 +12,9 @@ public class PlayerGrappling : MonoBehaviour
     public Transform gunTip;
     public LayerMask grappableMask;
     public LineRenderer grappleLine;
+    public RawImage pointer;
+    public Color normalPointerColor = Color.white;
+    public Color pointerColor = Color.green;
 
     [Header("Grappling")]
     public float grappleDistance;
@@ -19,6 +23,8 @@ public class PlayerGrappling : MonoBehaviour
     private float grappleTimer;
     public float shootToY;
 
+    public float pointerCooldown;
+    private float pointerTimer;
 
     [Header("Inputs")]
     private Vector2 inputs;
@@ -37,6 +43,21 @@ public class PlayerGrappling : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (pointerTimer <= 0)
+        {
+            if (Physics.Raycast(cam.position, cam.forward, grappleDistance, grappableMask))
+            {
+                pointer.color = pointerColor;
+            }
+            else
+            {
+                pointer.color = normalPointerColor;
+            }
+            pointerTimer = pointerCooldown;
+        }
+
+        pointerTimer -= Time.deltaTime;
+
 
         if (Input.GetKeyDown(grappleKey))
         {
