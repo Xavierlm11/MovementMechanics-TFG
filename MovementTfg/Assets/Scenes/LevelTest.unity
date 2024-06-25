@@ -57473,6 +57473,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 462207659247077853, guid: e7ca05afae49a264fb9a52bbbfb1b778, type: 3}
+      propertyPath: dashKey
+      value: 304
+      objectReference: {fileID: 0}
+    - target: {fileID: 462207659247077853, guid: e7ca05afae49a264fb9a52bbbfb1b778, type: 3}
       propertyPath: maxDashYSpeed
       value: 15
       objectReference: {fileID: 0}

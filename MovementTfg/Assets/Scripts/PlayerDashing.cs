@@ -40,7 +40,7 @@ public class PlayerDashing : MonoBehaviour
     // Update is called once per frame 
     void Update()
     {
-        if (Input.GetKeyDown(dashKey) && playerMov.dashCount > 0)
+        if (Input.GetKeyDown(dashKey) && playerMov.dashCount > 0 && playerMov.movState != Player.MovementState.Crouching)
         {
             // playerMov.dashCount = 0;
             DashAction();
