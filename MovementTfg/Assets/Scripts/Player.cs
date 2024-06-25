@@ -1,7 +1,6 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+
 
 
 public class Player : MonoBehaviour
@@ -36,7 +35,7 @@ public class Player : MonoBehaviour
     public float crouchSpeed;
     public float crouchYScale;
     private float startYScale;
-
+    private bool isCrouch = false;
     [Header("Dash")]
     public bool isDashing;
     public float dashSpeed;
@@ -60,12 +59,13 @@ public class Player : MonoBehaviour
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode LdashKey = KeyCode.LeftShift;
     public KeyCode LcrouchKey = KeyCode.LeftControl;
-    
+    private bool isCrouchUp = false;
 
     [Header("Ground")]
     public float playerHeight = 1.0f;
     public LayerMask groundMask;
     public bool inGround;
+    public bool isCeil;
 
     [Header("Slope Managment")]
     public float maxSlopeAngle;
@@ -75,7 +75,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private Transform orientation;
 
-    private Vector2 inputs;
+    public Vector2 inputs;
 
     private Vector3 moveDirection;
 
@@ -119,7 +119,7 @@ public class Player : MonoBehaviour
     public bool isFreeze;
     public bool activeGrapple;
     private PlayerGrappling playerGrapplingSc;
-    
+
 
     public enum MovementState
     {
@@ -150,7 +150,7 @@ public class Player : MonoBehaviour
     {
 
         inGround = Physics.Raycast(transform.position, Vector3.down, (playerHeight / 2) + 0.2f, groundMask);
-
+        isCeil = Physics.Raycast(transform.position, Vector3.up, (playerHeight / 2) + 0.2f);
         UpdateInputs();
 
         VelocityControl();
@@ -176,7 +176,7 @@ public class Player : MonoBehaviour
 
         AudioManager();
 
- 
+
     }
 
     private void AudioManager()
@@ -228,7 +228,6 @@ public class Player : MonoBehaviour
 
                 if (steped)
                 {
-
                     stepsSource.pitch = PitchToUse;
                     stepsSource.Play();
                     steped = false;
@@ -238,10 +237,7 @@ public class Player : MonoBehaviour
                     steps2Source.pitch = PitchToUse;
                     steps2Source.Play();
                     steped = true;
-
                 }
-
-
             }
         }
     }
@@ -299,14 +295,30 @@ public class Player : MonoBehaviour
 
     private void CrouchManager()
     {
-        if ((Input.GetKeyDown(LcrouchKey)) && inGround)
+
+        bool noInputs = false;
+        if(inputs.x == 0 && inputs.y == 0)
+            noInputs = true;
+
+        if(isCeil && Input.GetKeyUp(LcrouchKey))
         {
+            isCrouchUp = true;
+        }
+
+        if (( Input.GetKeyDown(LcrouchKey)&& noInputs || playerSlideSc.afterSlide && Input.GetKey(LcrouchKey))  && inGround)
+        {
+
+            playerSlideSc.afterSlide = false;
+            isCrouch = true;
             transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+            Debug.Log("agachao");
         }
-        if (Input.GetKeyUp(LcrouchKey) && movState == MovementState.Crouching || !inGround)
+        if ((Input.GetKeyUp(LcrouchKey) && movState == MovementState.Crouching  || !inGround || isCrouchUp)&&!isCeil)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+            isCrouch = false;
+            isCrouchUp=false;
         }
     }
 
@@ -343,7 +355,7 @@ public class Player : MonoBehaviour
 
             }
         }
-        else if (Input.GetKey(LcrouchKey) && inGround)
+        else if (/*Input.GetKey(LcrouchKey) && inGround*/isCrouch)
         {
 
             movState = MovementState.Crouching;
@@ -409,7 +421,7 @@ public class Player : MonoBehaviour
         }
         maxAimedMoveSpeed = aimedMoveSpeed;
 
-       
+
 
     }
 
@@ -451,7 +463,7 @@ public class Player : MonoBehaviour
         {
             canJump = false;
             canDoubleJump = true;
-
+            Input.GetKeyDown(jumpKey);
             Jump();
             Invoke(nameof(ResetJump), jumpCooldown);
         }
@@ -551,7 +563,7 @@ public class Player : MonoBehaviour
             currentSpeed = vel.magnitude;
         else
             currentSpeed = rb.velocity.magnitude;
-            
+
 
     }
 
