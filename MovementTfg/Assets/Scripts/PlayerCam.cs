@@ -64,7 +64,7 @@ public class PlayerCam : MonoBehaviour
         camRotation.y -= inputY;
         camRotation.y = Mathf.Clamp(camRotation.y, -90f, 90f);
 
-        //transform.rotation = Quaternion.Euler(camRotation.y, camRotation.x,0);
+        
         camHolder.rotation = Quaternion.Euler(camRotation.y, camRotation.x, 0);
         orientation.rotation = Quaternion.Euler(0, camRotation.x, 0);
 
@@ -80,7 +80,7 @@ public class PlayerCam : MonoBehaviour
     {
         float time = 0;
         float duration = fovLerpTime;
-        //float diff = Mathf.Abs(aimfov - speed); //differenve
+       
         float startVal = cam.fieldOfView;
         float endVal = fov;
 
@@ -101,11 +101,10 @@ public class PlayerCam : MonoBehaviour
     {
         float time = 0;
         float duration = tiltLerpTime;
-        //float diff = Mathf.Abs(aimfov - speed); //differenve
+        
         float startVal = cam.transform.localRotation.z;
         float endVal = tilt;
 
-       // Debug.Log("Tiltingh");
         while (time < duration)
         {
             cam.transform.localRotation = Quaternion.Euler(cam.transform.rotation.x, cam.transform.rotation.y, Mathf.Lerp(startVal, endVal, time / duration));
@@ -131,9 +130,6 @@ public class PlayerCam : MonoBehaviour
 
     public void GameOptions()
     {
-
-        // activePanel = activePanel != optionsPanel.activeSelf ? true : false;
-        // bool v = activePanel != optionsPanel.activeSelf;
 
         if (activePanel) activePanel = false;
         else activePanel = true;

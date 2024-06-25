@@ -102,9 +102,7 @@ public class PlayerSliding : MonoBehaviour
     private void EndSlide()
     {
         playerMov.isSliding = false;
-        // if (Input.GetKey(LSlideKey))
-        //     playerMov.movState = Player.MovementState.Crouching;
-        Debug.Log("uwuwuwuwu");
+        
         playerObj.localScale = new Vector3(playerObj.localScale.x, startYscale, playerObj.localScale.z);
     }
 }

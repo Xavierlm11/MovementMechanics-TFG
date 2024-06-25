@@ -312,7 +312,7 @@ public class Player : MonoBehaviour
             isCrouch = true;
             transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-            Debug.Log("agachao");
+           
         }
         if ((Input.GetKeyUp(LcrouchKey) && movState == MovementState.Crouching  || !inGround || isCrouchUp)&&!isCeil)
         {
@@ -333,8 +333,7 @@ public class Player : MonoBehaviour
         else if (isFreeze)
         {
             movState = MovementState.Freeze;
-            //aimedMoveSpeed = 0;
-            //rb.velocity = Vector3.zero;
+            
         }
         else if (isDashing)
         {
@@ -355,7 +354,7 @@ public class Player : MonoBehaviour
 
             }
         }
-        else if (/*Input.GetKey(LcrouchKey) && inGround*/isCrouch)
+        else if (isCrouch)
         {
 
             movState = MovementState.Crouching;
@@ -408,7 +407,7 @@ public class Player : MonoBehaviour
 
         if (Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed) > 4f && speed != 0) // 4 is the speed where it start the smooth change of velocity
         {
-            // StopAllCoroutines();
+           
             StopCoroutine(LerpSpeed());
             StartCoroutine(LerpSpeed());
 
@@ -430,11 +429,6 @@ public class Player : MonoBehaviour
         float time = 0;
         float diff = Mathf.Abs(aimedMoveSpeed - speed); //differenve
         float startVal = speed;
-
-        //if (IsOnSlope() && speed >= slideSpeed)
-        //      Debug.Log("lerpe 1 : " + speed);
-
-
 
         while (time < diff)
         {
@@ -473,7 +467,7 @@ public class Player : MonoBehaviour
             if (jumpCount >= jumps)
             {
                 canDoubleJump = false;
-                //jumpCount = 0;
+               
             }
             else Jump();
 
