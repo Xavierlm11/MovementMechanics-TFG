@@ -29,6 +29,8 @@ public class PlayerDashing : MonoBehaviour
 
 
     public KeyCode dashKey = KeyCode.Mouse0;
+    public List<KeyCode> dashKeys = new List<KeyCode> { KeyCode.LeftShift, KeyCode.Mouse0, KeyCode.Q };
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -40,7 +42,14 @@ public class PlayerDashing : MonoBehaviour
     // Update is called once per frame 
     void Update()
     {
-        if (Input.GetKeyDown(dashKey) && playerMov.dashCount > 0 && playerMov.movState != Player.MovementState.Crouching)
+        bool isKeyDown = false;
+  
+        for (int i = 0; i < dashKeys.Count; i++)
+        {
+            if (Input.GetKeyDown(dashKeys[i]))
+                isKeyDown = true;
+        }
+        if (/*Input.GetKeyDown(dashKey)*/isKeyDown && playerMov.dashCount > 0 && playerMov.movState != Player.MovementState.Crouching)
         {
             // playerMov.dashCount = 0;
             DashAction();

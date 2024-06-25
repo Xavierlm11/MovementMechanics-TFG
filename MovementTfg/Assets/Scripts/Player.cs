@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -58,7 +59,9 @@ public class Player : MonoBehaviour
     [Header("Keys")]
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode LdashKey = KeyCode.LeftShift;
+    public List<KeyCode> dashKeys = new List<KeyCode> { KeyCode.LeftShift, KeyCode.Mouse0, KeyCode.Q };
     public KeyCode LcrouchKey = KeyCode.LeftControl;
+    public List<KeyCode> coruchKeys = new List<KeyCode> { KeyCode.LeftControl, KeyCode.E, KeyCode.C };
     private bool isCrouchUp = false;
 
     [Header("Ground")]
@@ -297,28 +300,42 @@ public class Player : MonoBehaviour
     {
 
         bool noInputs = false;
-        if(inputs.x == 0 && inputs.y == 0)
+        if (inputs.x == 0 && inputs.y == 0)
             noInputs = true;
 
-        if(isCeil && Input.GetKeyUp(LcrouchKey))
+        bool isKeyDown = false;
+        bool isKeyUp = false;
+        bool isKeyPressed = false;
+        for (int i = 0; i < coruchKeys.Count; i++)
+        {
+            if (Input.GetKeyDown(coruchKeys[i]))
+                isKeyDown = true;
+            if (Input.GetKey(coruchKeys[i]))
+                isKeyPressed = true;
+            if (Input.GetKeyUp(coruchKeys[i]))
+                isKeyUp = true;
+
+        }
+
+        if (isCeil && /*Input.GetKeyUp(LcrouchKey)*/isKeyUp)
         {
             isCrouchUp = true;
         }
 
-        if (( Input.GetKeyDown(LcrouchKey)&& noInputs || playerSlideSc.afterSlide && Input.GetKey(LcrouchKey))  && inGround)
+        if ((/*Input.GetKeyDown(LcrouchKey)*/isKeyDown && noInputs || playerSlideSc.afterSlide && /*Input.GetKey(LcrouchKey)*/isKeyPressed) && inGround)
         {
 
             playerSlideSc.afterSlide = false;
             isCrouch = true;
             transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-           
+
         }
-        if ((Input.GetKeyUp(LcrouchKey) && movState == MovementState.Crouching  || !inGround || isCrouchUp)&&!isCeil)
+        if ((/*Input.GetKeyUp(LcrouchKey)*/ isKeyUp && movState == MovementState.Crouching || !inGround || isCrouchUp) && !isCeil)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
             isCrouch = false;
-            isCrouchUp=false;
+            isCrouchUp = false;
         }
     }
 
@@ -333,7 +350,7 @@ public class Player : MonoBehaviour
         else if (isFreeze)
         {
             movState = MovementState.Freeze;
-            
+
         }
         else if (isDashing)
         {
@@ -407,7 +424,7 @@ public class Player : MonoBehaviour
 
         if (Mathf.Abs(aimedMoveSpeed - maxAimedMoveSpeed) > 4f && speed != 0) // 4 is the speed where it start the smooth change of velocity
         {
-           
+
             StopCoroutine(LerpSpeed());
             StartCoroutine(LerpSpeed());
 
@@ -467,7 +484,7 @@ public class Player : MonoBehaviour
             if (jumpCount >= jumps)
             {
                 canDoubleJump = false;
-               
+
             }
             else Jump();
 
@@ -546,12 +563,17 @@ public class Player : MonoBehaviour
             StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
 
         }
-        else if ((movState == MovementState.Walking || movState == MovementState.Air || movState == MovementState.Wallrunning || movState == MovementState.Crouching) && isFovChanged)
+        else if ((movState == MovementState.Walking || movState == MovementState.Air || movState == MovementState.Wallrunning || movState == MovementState.Crouching) && isFovChanged )
         {
 
             isFovChanged = false;
             StartCoroutine(cam.LerpFov(cam.startFov));
         }
+
+        //if(!isFovChanged && cam.actualFov!=cam.startFov && movState != MovementState.Wallrunning)
+        //{
+        //    StartCoroutine(cam.LerpFov(cam.startFov));
+        //}
 
         if (!IsOnSlope())
             currentSpeed = vel.magnitude;

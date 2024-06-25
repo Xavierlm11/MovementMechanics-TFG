@@ -26,6 +26,7 @@ public class PlayerSliding : MonoBehaviour
 
     [Header("Inputs")]
     public KeyCode LSlideKey = KeyCode.LeftControl;
+    public List<KeyCode> slideKeys = new List<KeyCode> { KeyCode.LeftControl, KeyCode.E, KeyCode.C };
     public Vector2 inputs;
     // Start is called before the first frame update
     void Start()
@@ -42,14 +43,25 @@ public class PlayerSliding : MonoBehaviour
         inputs.x = Input.GetAxisRaw("Horizontal");
         inputs.y = Input.GetAxisRaw("Vertical");
 
-        
+       
+        bool isKeyUp = false;
+        bool isKeyPressed = false;
+        for (int i = 0; i < slideKeys.Count; i++)
+        {
+            
+            if (Input.GetKey(slideKeys[i]))
+                isKeyPressed = true;
+            if (Input.GetKeyUp(slideKeys[i]))
+                isKeyUp = true;
 
-        if (Input.GetKey(LSlideKey) && (inputs.x != 0 || inputs.y > 0) && playerMov.inGround && !canSlide && playerMov.movState != Player.MovementState.Crouching)
+        }
+
+        if (/*Input.GetKey(LSlideKey)*/isKeyPressed && (inputs.x != 0 || inputs.y > 0) && playerMov.inGround && !canSlide && playerMov.movState != Player.MovementState.Crouching)
         {
 
             StartSlide();
         }
-        if (Input.GetKeyUp(LSlideKey) && (playerMov.isSliding || slidedToEnd) && !playerMov.isCeil || !playerMov.inGround && playerMov.isSliding)
+        if (/*Input.GetKeyUp(LSlideKey)*/isKeyUp && (playerMov.isSliding || slidedToEnd) && !playerMov.isCeil || !playerMov.inGround && playerMov.isSliding)
         {
             slidedToEnd = false;
             canSlide = false;
