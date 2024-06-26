@@ -122,7 +122,7 @@ public class Player : MonoBehaviour
     public bool isFreeze;
     public bool activeGrapple;
     private PlayerGrappling playerGrapplingSc;
-
+    private LevelManager levelManager;
 
     public enum MovementState
     {
@@ -145,7 +145,7 @@ public class Player : MonoBehaviour
         rb.freezeRotation = true;
         startYScale = transform.localScale.y;
         startStepsPitch = stepsSource.pitch;
-
+        levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
     }
 
     // Update is called once per frame
@@ -247,8 +247,8 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-
-        PlayerMovement();
+        if (!levelManager.activePanel)
+            PlayerMovement();
 
         transform.rotation = orientation.rotation;
     }
@@ -289,11 +289,12 @@ public class Player : MonoBehaviour
         inputs.y = Input.GetAxisRaw("Vertical");
 
         //jump
+        if (!levelManager.activePanel)
+        {
+            JumpingManage();
 
-        JumpingManage();
-
-        CrouchManager();
-
+            CrouchManager();
+        }
     }
 
     private void CrouchManager()
@@ -563,7 +564,7 @@ public class Player : MonoBehaviour
             StartCoroutine(cam.LerpFov(cam.startFov + fovAdition));
 
         }
-        else if ((movState == MovementState.Walking || movState == MovementState.Air || movState == MovementState.Wallrunning || movState == MovementState.Crouching) && isFovChanged )
+        else if ((movState == MovementState.Walking || movState == MovementState.Air || movState == MovementState.Wallrunning || movState == MovementState.Crouching) && isFovChanged)
         {
 
             isFovChanged = false;

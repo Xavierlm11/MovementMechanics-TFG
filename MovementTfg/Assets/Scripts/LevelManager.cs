@@ -16,15 +16,23 @@ public class LevelManager : MonoBehaviour
     public KeyCode restartKey = KeyCode.F1;
     public Player player;
     public float playerLimit = 40.0f;
+    public PlayerCam camSc;
 
     public TMP_Text stateTextObj;
     public TMP_Text velTextObj;
+
+    public GameObject optionsPanel;
+    public GameObject tutorialPanel;
+    public TMP_Text sensibilityText;
+    public TMP_Text FOVText;
+    public bool activePanel = false;
+    public bool activeTutorial = false;
 
     // Start is called before the first frame update
     void Start()
     {
         GetCoinsOnScene();
-
+        optionsPanel.SetActive(activePanel);
     }
 
     // Update is called once per frame
@@ -32,21 +40,36 @@ public class LevelManager : MonoBehaviour
     {
 
 
+        if (!activePanel)
+        {
 
-        if (player.transform.position.y < playerLimit || Input.GetKeyDown(respawnKey))
-        {
-            player.RespawnPlayer();
+            if (player.transform.position.y < playerLimit || Input.GetKeyDown(respawnKey))
+            {
+                player.RespawnPlayer();
+            }
+            if (Input.GetKeyDown(restartKey))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            } 
         }
-        if (Input.GetKeyDown(restartKey))
+
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+            GameOptions();
+        } 
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+
+            GameTutorial();
         }
+        
     }
 
     private void LateUpdate()
     {
         CanvasTextManager();
-
+        ManageText();
     }
 
     private void CanvasTextManager()
@@ -68,5 +91,40 @@ public class LevelManager : MonoBehaviour
     public void CollectCoin()
     {
         foundCoins++;
+    }
+    public void ManageText()
+    {
+        FOVText.text =camSc.cam.fieldOfView.ToString("0.00");
+        sensibilityText.text = camSc.generalSensitivity.ToString("0.00");
+    }
+    public void GameOptions()
+    {
+
+        if (activePanel) activePanel = false;
+        else activePanel = true;
+
+
+        optionsPanel.SetActive(activePanel);
+        if (activePanel)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Time.timeScale = 0;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Time.timeScale = 1;
+        }
+    } 
+    public void GameTutorial()
+    {
+
+        if (activeTutorial) activeTutorial = false;
+        else activeTutorial = true;
+
+        tutorialPanel.SetActive(activeTutorial);
+
     }
 }

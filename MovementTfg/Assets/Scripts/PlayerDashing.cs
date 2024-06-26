@@ -11,6 +11,7 @@ public class PlayerDashing : MonoBehaviour
     private Player playerMov;
     public PlayerCam cam;
     public GameObject speedLines;
+    private LevelManager levelManager;
     [Header("Dash")]
     public float dashForce;
     public float dashUpwardForce;
@@ -37,17 +38,20 @@ public class PlayerDashing : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerMov = GetComponent<Player>();
         cam = playerMov.cam;
+        levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
     }
 
     // Update is called once per frame 
     void Update()
     {
         bool isKeyDown = false;
-  
-        for (int i = 0; i < dashKeys.Count; i++)
+        if (!levelManager.activePanel)
         {
-            if (Input.GetKeyDown(dashKeys[i]))
-                isKeyDown = true;
+            for (int i = 0; i < dashKeys.Count; i++)
+            {
+                if (Input.GetKeyDown(dashKeys[i]))
+                    isKeyDown = true;
+            }
         }
         if (/*Input.GetKeyDown(dashKey)*/isKeyDown && playerMov.dashCount > 0 && playerMov.movState != Player.MovementState.Crouching)
         {

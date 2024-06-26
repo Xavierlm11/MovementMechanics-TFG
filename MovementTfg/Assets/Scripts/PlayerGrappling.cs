@@ -15,7 +15,7 @@ public class PlayerGrappling : MonoBehaviour
     public RawImage pointer;
     public Color normalPointerColor = Color.white;
     public Color pointerColor = Color.green;
-
+    private LevelManager levelManager;
     [Header("Grappling")]
     public float grappleDistance;
     public float grappleDelay;
@@ -37,7 +37,7 @@ public class PlayerGrappling : MonoBehaviour
     {
         playerMov = GetComponent<Player>();
         cam = playerMov.cam.transform;
-
+        levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
     }
 
     // Update is called once per frame
@@ -58,11 +58,12 @@ public class PlayerGrappling : MonoBehaviour
 
         pointerTimer -= Time.deltaTime;
 
-
-        if (Input.GetKeyDown(grappleKey))
+        if (!levelManager.activePanel)
         {
-            StartGrapple();
-
+            if (Input.GetKeyDown(grappleKey))
+            {
+                StartGrapple();
+            }
         }
         if (grappleTimer > 0)
         {

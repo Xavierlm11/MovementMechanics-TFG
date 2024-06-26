@@ -28,6 +28,7 @@ public class PlayerSliding : MonoBehaviour
     public KeyCode LSlideKey = KeyCode.LeftControl;
     public List<KeyCode> slideKeys = new List<KeyCode> { KeyCode.LeftControl, KeyCode.E, KeyCode.C };
     public Vector2 inputs;
+    private LevelManager levelManager;
     // Start is called before the first frame update
     void Start()
     {
@@ -35,6 +36,7 @@ public class PlayerSliding : MonoBehaviour
         playerMov = GetComponent<Player>();
         startYscale = playerObj.localScale.y;
         canSlide = false;
+        levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
     }
 
     // Update is called once per frame
@@ -46,16 +48,16 @@ public class PlayerSliding : MonoBehaviour
        
         bool isKeyUp = false;
         bool isKeyPressed = false;
-        for (int i = 0; i < slideKeys.Count; i++)
+        if (!levelManager.activePanel)
         {
-            
-            if (Input.GetKey(slideKeys[i]))
-                isKeyPressed = true;
-            if (Input.GetKeyUp(slideKeys[i]))
-                isKeyUp = true;
-
+            for (int i = 0; i < slideKeys.Count; i++)
+            {
+                if (Input.GetKey(slideKeys[i]))
+                    isKeyPressed = true;
+                if (Input.GetKeyUp(slideKeys[i]))
+                    isKeyUp = true;
+            }
         }
-
         if (/*Input.GetKey(LSlideKey)*/isKeyPressed && (inputs.x != 0 || inputs.y > 0) && playerMov.inGround && !canSlide && playerMov.movState != Player.MovementState.Crouching)
         {
 
