@@ -10,7 +10,7 @@ public class PlayerDashing : MonoBehaviour
     private Rigidbody rb;
     private Player playerMov;
     public PlayerCam cam;
-
+    public GameObject speedLines;
     [Header("Dash")]
     public float dashForce;
     public float dashUpwardForce;
@@ -53,6 +53,7 @@ public class PlayerDashing : MonoBehaviour
         {
             // playerMov.dashCount = 0;
             DashAction();
+            speedLines.SetActive(true);
         }
 
         if (dashTimer > 0)
@@ -105,6 +106,7 @@ public class PlayerDashing : MonoBehaviour
     {
         playerMov.isDashing = false;
         playerMov.maxYSpeed = 0;
+        speedLines.SetActive(false);
         if (disableGravity)
         {
             rb.useGravity = true;
