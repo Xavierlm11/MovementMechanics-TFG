@@ -318,12 +318,12 @@ public class Player : MonoBehaviour
 
         }
 
-        if (isCeil && /*Input.GetKeyUp(LcrouchKey)*/isKeyUp)
+        if (isCeil && isKeyUp)
         {
             isCrouchUp = true;
         }
 
-        if ((/*Input.GetKeyDown(LcrouchKey)*/isKeyDown && noInputs || playerSlideSc.afterSlide && /*Input.GetKey(LcrouchKey)*/isKeyPressed) && inGround)
+        if ((isKeyDown && noInputs || playerSlideSc.afterSlide && isKeyPressed) && inGround)
         {
 
             playerSlideSc.afterSlide = false;
@@ -332,7 +332,7 @@ public class Player : MonoBehaviour
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
 
         }
-        if ((/*Input.GetKeyUp(LcrouchKey)*/ isKeyUp && movState == MovementState.Crouching || !inGround || isCrouchUp) && !isCeil)
+        if (( isKeyUp && movState == MovementState.Crouching || !inGround || isCrouchUp) && !isCeil)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
             isCrouch = false;
