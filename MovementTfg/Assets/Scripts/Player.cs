@@ -571,11 +571,7 @@ public class Player : MonoBehaviour
             StartCoroutine(cam.LerpFov(cam.startFov));
         }
 
-        //if(!isFovChanged && cam.actualFov!=cam.startFov && movState != MovementState.Wallrunning)
-        //{
-        //    StartCoroutine(cam.LerpFov(cam.startFov));
-        //}
-
+      
         if (!IsOnSlope())
             currentSpeed = vel.magnitude;
         else
